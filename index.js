@@ -6,7 +6,7 @@ const serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com"
+  databaseURL: "https://sports-hub-6bc4b-default-rtdb.firebaseio.com"
 });
 
 async function syncMatches() {
