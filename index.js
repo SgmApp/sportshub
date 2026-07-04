@@ -14,19 +14,16 @@ async function syncMatches() {
 
     try {
 
-        console.log("Sports Hub Sync Started");
+        console.log("===== Sports Hub Sync Started =====");
 
-        const today =
-            new Date()
+        const today = new Date()
             .toISOString()
             .split("T")[0];
 
-        const response =
-            await axios.get(
+        const url =
+            `https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=1&timezoneName=Asia/Kolkata&userCountryId=80&sports=1&startDate=${today}&endDate=${today}`;
 
-`https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=1&timezoneName=Asia/Kolkata&userCountryId=80&sports=1&startDate=${today}&endDate=${today}`
-
-            );
+        const response = await axios.get(url);
 
         const competitions =
             response.data.competitions || [];
@@ -34,16 +31,10 @@ async function syncMatches() {
         const games =
             response.data.games || [];
 
-        console.log(
-            "Competitions:",
-            competitions.length
-        );
+        console.log("Competitions :", competitions.length);
+        console.log("Games :", games.length);
 
-        console.log(
-            "Games:",
-            games.length
-        );
-              // Save competitions to Firebase
+        // Save competitions
 
         for (const c of competitions) {
 
@@ -56,7 +47,7 @@ async function syncMatches() {
 
         }
 
-        console.log("Competition list updated");
+        console.log("Competition list updated.");
 
         // Read selected competitions
 
@@ -84,7 +75,7 @@ async function syncMatches() {
         });
 
         console.log(
-            "Selected competitions:",
+            "Selected competitions :",
             allowedCompetitions.length
         );
 
@@ -98,7 +89,7 @@ async function syncMatches() {
             const competitionId =
                 game.competitionId || 0;
 
-            // Skip competitions that are not selected
+            // Skip unselected competitions
 
             if (
                 allowedCompetitions.length > 0 &&
@@ -127,20 +118,8 @@ async function syncMatches() {
                 away.name
             );
 
-            // Part 3 starts here
-
-        }
-
-    } catch (e) {
-
-        console.error(e);
-
-    }
-
-}
-
-syncMatches();
-            // Status
+            // Part 2 starts here
+                    // Status
 
             let status =
                 game.statusText || "";
@@ -258,8 +237,6 @@ syncMatches();
 
             }
 
-            // Date
-
             const start =
                 new Date(game.startTime);
 
@@ -329,8 +306,8 @@ syncMatches();
 
             };
 
-            // Part 4 starts here
-            // Check existing match
+            // Part 3 starts here
+                    // Check existing match
 
             const oldSnap =
                 await matchesRef
@@ -342,7 +319,7 @@ syncMatches();
                 const old =
                     oldSnap.val();
 
-                // Preserve streamUrl
+                // Preserve existing streamUrl
 
                 if (
                     old.streamUrl &&
@@ -356,7 +333,7 @@ syncMatches();
 
             }
 
-            // Save match
+            // Save / Update match
 
             await matchesRef
                 .child(String(game.id))
@@ -369,15 +346,21 @@ syncMatches();
 
         }
 
-        // Delete old date matches
+        // Part 4 starts here
+            // Delete old date matches
 
         const allMatches =
             await matchesRef.once("value");
 
-        const today =
+        const todayDate =
             new Date()
-            .toLocaleDateString("en-GB")
-            .replace(/\//g, "-");
+                .toLocaleDateString("en-GB")
+                .replace(/\//g, "-");
+
+        for (const child of Object.values(allMatches.val() || {})) {
+
+            // Nothing
+        }
 
         allMatches.forEach(child => {
 
@@ -387,7 +370,7 @@ syncMatches();
 
             // Remove old date
 
-            if (m.date !== today) {
+            if (m.date !== todayDate) {
 
                 child.ref.remove();
 
@@ -411,12 +394,15 @@ syncMatches();
         });
 
         console.log(
-            "Firebase Sync Completed"
+            "===== Firebase Sync Completed ====="
         );
 
     } catch (e) {
 
-        console.error(e);
+        console.error(
+            "Sync Error:",
+            e
+        );
 
     }
 
