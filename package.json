@@ -1,9 +1,8 @@
 {
-  "name": "sports-sync",
+  "name": "sportshub",
   "version": "1.0.0",
-  "main": "index.js",
   "dependencies": {
-    "axios": "^1.6.0",
-    "firebase-admin": "^12.0.0"
+    "axios": "^1.7.2",
+    "firebase-admin": "^12.5.0"
   }
 }
