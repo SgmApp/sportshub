@@ -357,10 +357,7 @@ async function syncMatches() {
                 .toLocaleDateString("en-GB")
                 .replace(/\//g, "-");
 
-        for (const child of Object.values(allMatches.val() || {})) {
-
-            // Nothing
-        }
+        
 
         allMatches.forEach(child => {
 
