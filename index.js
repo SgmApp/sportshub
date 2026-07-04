@@ -382,20 +382,6 @@ async function syncMatches() {
     }
         }
 
-            // Remove unselected competitions
-
-            if (
-                allowedCompetitions.length > 0 &&
-                !allowedCompetitions.includes(
-                    m.competitionId
-                )
-            ) {
-
-                child.ref.remove();
-
-            }
-
-        });
 
         console.log(
             "===== Firebase Sync Completed ====="
