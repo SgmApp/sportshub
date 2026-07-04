@@ -359,7 +359,25 @@ async function syncMatches() {
 
         
 
-        for (const child of allMatches.getChildren()) {
+        allMatches.forEach((child) => {
+
+    const m = child.val();
+
+    if (!m) return;
+
+    if (m.date !== todayDate) {
+        child.ref.remove();
+        return;
+    }
+
+    if (
+        allowedCompetitions.length > 0 &&
+        !allowedCompetitions.includes(m.competitionId)
+    ) {
+        child.ref.remove();
+    }
+
+});
 
     const m = child.val();
 
