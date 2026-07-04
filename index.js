@@ -47,7 +47,7 @@ async function syncMatches() {
         console.log("Competitions :", competitions.length);
         console.log("Games :", games.length);
 
-            // Save competitions
+        // Save competitions
 
         for (const c of competitions) {
 
@@ -94,13 +94,7 @@ async function syncMatches() {
 
         const matchesRef = db.ref("matches");
 
-        // Remove all old matches
-
-        await matchesRef.remove();
-
-        console.log("Old matches removed.");
-
-        // Start processing games
+            // Start processing games
 
         for (const game of games) {
 
@@ -136,36 +130,56 @@ async function syncMatches() {
                 away.name
             );
 
-                        // Status
+            // Status
 
-            let status = game.statusText || "";
-            let shortStatus = game.shortStatusText || "";
+            let status =
+                game.statusText || "";
+
+            let shortStatus =
+                game.shortStatusText || "";
+
             let adapterStatus = "";
 
-            const s = status.toLowerCase();
-            const ss = shortStatus.toUpperCase();
+            const s =
+                status.toLowerCase();
 
-            if (s.includes("ended") || s.includes("finished")) {
+            const ss =
+                shortStatus.toUpperCase();
+
+            if (
+                s.includes("ended") ||
+                s.includes("finished")
+            ) {
 
                 adapterStatus = "FT";
 
-            } else if (s.includes("penalties")) {
+            } else if (
+                s.includes("penalties")
+            ) {
 
                 adapterStatus = "AP";
 
-            } else if (s.includes("scheduled")) {
+            } else if (
+                s.includes("scheduled")
+            ) {
 
                 adapterStatus = "Scheduled";
 
-            } else if (s.includes("postponed")) {
+            } else if (
+                s.includes("postponed")
+            ) {
 
                 adapterStatus = "Postponed";
 
-            } else if (s.includes("cancelled")) {
+            } else if (
+                s.includes("cancelled")
+            ) {
 
                 adapterStatus = "Cancelled";
 
-            } else if (s.includes("abandoned")) {
+            } else if (
+                s.includes("abandoned")
+            ) {
 
                 adapterStatus = "Abandoned";
 
@@ -186,9 +200,10 @@ async function syncMatches() {
                     adapterStatus = "LIVE";
 
                 }
+
             }
 
-            // Score
+                    // Score
 
             let score = "VS";
 
@@ -199,10 +214,16 @@ async function syncMatches() {
                 adapterStatus !== "Abandoned"
             ) {
 
-                const homeScore = home.score ?? 0;
-                const awayScore = away.score ?? 0;
+                const homeScore =
+                    home.score ?? 0;
 
-                score = homeScore + " - " + awayScore;
+                const awayScore =
+                    away.score ?? 0;
+
+                score =
+                    homeScore +
+                    " - " +
+                    awayScore;
 
                 if (
                     adapterStatus === "AP" &&
@@ -216,10 +237,13 @@ async function syncMatches() {
                         "-" +
                         away.penaltyScore +
                         ")";
+
                 }
+
             }
 
-            const start = new Date(game.startTime);
+            const start =
+                new Date(game.startTime);
 
             const homeLogo =
                 "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
@@ -232,42 +256,60 @@ async function syncMatches() {
             const matchData = {
 
                 gameId: game.id,
+
                 competitionId: competitionId,
 
-                league: game.competitionDisplayName || "",
+                league:
+                    game.competitionDisplayName || "",
 
-                home: home.name || "",
-                away: away.name || "",
+                home:
+                    home.name || "",
 
-                score: score,
+                away:
+                    away.name || "",
 
-                status: adapterStatus,
-                shortStatus: shortStatus,
+                score:
+                    score,
 
-                streamUrl: game.streamUrl || "",
+                status:
+                    adapterStatus,
 
-                stadium: venue.name || "",
+                shortStatus:
+                    shortStatus,
 
-                date: start
-                    .toLocaleDateString("en-GB")
-                    .replace(/\//g, "-"),
+                streamUrl:
+                    game.streamUrl || "",
 
-                time: start.toLocaleTimeString(
-                    "en-US",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true
-                    }
-                ),
+                stadium:
+                    venue.name || "",
 
-                matchTimeMillis: start.getTime(),
+                date:
+                    start
+                        .toLocaleDateString("en-GB")
+                        .replace(/\//g, "-"),
 
-                homeLogo: homeLogo,
-                awayLogo: awayLogo
+                time:
+                    start.toLocaleTimeString(
+                        "en-US",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    ),
+
+                matchTimeMillis:
+                    start.getTime(),
+
+                homeLogo:
+                    homeLogo,
+
+                awayLogo:
+                    awayLogo
+
             };
 
-                        // Check existing match
+                    // Preserve existing streamUrl
 
             const oldSnap =
                 await matchesRef
@@ -279,11 +321,10 @@ async function syncMatches() {
                 const old =
                     oldSnap.val();
 
-                // Preserve streamUrl
-
                 if (
+                    old &&
                     old.streamUrl &&
-                    old.streamUrl !== ""
+                    old.streamUrl.trim() !== ""
                 ) {
 
                     matchData.streamUrl =
@@ -297,7 +338,7 @@ async function syncMatches() {
 
             await matchesRef
                 .child(String(game.id))
-                .update(matchData);
+                .set(matchData);
 
             console.log(
                 "Updated:",
@@ -305,80 +346,41 @@ async function syncMatches() {
             );
 
         }
+        // Keep only Yesterday + Today + Tomorrow
 
-        // Remove matches of unselected competitions
+        const keepDates = [];
 
-        const allMatches =
-            await matchesRef.once("value");
+        function formatKeepDate(date) {
+            return date
+                .toLocaleDateString("en-GB")
+                .replace(/\//g, "-");
+        }
 
-        allMatches.forEach((child) => {
+        keepDates.push(formatKeepDate(yesterday));
+        keepDates.push(formatKeepDate(today));
+        keepDates.push(formatKeepDate(tomorrow));
 
-            const match =
-                child.val();
+        const snap = await matchesRef.once("value");
+
+        snap.forEach((child) => {
+
+            const match = child.val();
 
             if (!match) return;
+
+            // Delete matches of unselected competitions
 
             if (
                 allowedCompetitions.length > 0 &&
-                !allowedCompetitions.includes(
-                    match.competitionId
-                )
+                !allowedCompetitions.includes(match.competitionId)
             ) {
 
                 child.ref.remove();
+                return;
 
             }
 
-        });
-
-        console.log(
-            "===== Firebase Sync Completed ====="
-        );
-
-    } catch (e) {
-
-        console.error(
-            "Sync Error:",
-            e
-        );
-
-    }
-
-}
-
-syncMatches();
-
-        // Keep only Yesterday + Today + Tomorrow
-
-        const keepDates = [];
-
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-
-        const t = new Date();
-
-        const tm = new Date();
-        tm.setDate(tm.getDate() + 1);
-
-        function format(date) {
-
-            return date
-                .toLocaleDateString("en-GB")
-                .replace(/\//g, "-");
-
-        }
-
-        keepDates.push(format(y));
-        keepDates.push(format(t));
-        keepDates.push(format(tm));
-
-        const snap = await matchesRef.once("value");
-
-        snap.forEach((child) => {
-
-            const match = child.val();
-
-            if (!match) return;
+            // Delete matches except Yesterday / Today / Tomorrow
 
             if (!keepDates.includes(match.date)) {
 
@@ -388,11 +390,8 @@ syncMatches();
 
         });
 
-        console.log("Old date matches removed.");
-
-        console.log(
-            "===== Firebase Sync Completed ====="
-        );
+        console.log("Old matches removed.");
+        console.log("===== Firebase Sync Completed =====");
 
     } catch (e) {
 
@@ -403,61 +402,4 @@ syncMatches();
 }
 
 syncMatches();
-
-
-        // Keep only Yesterday + Today + Tomorrow
-
-        const keepDates = [];
-
-        const y = new Date();
-        y.setDate(y.getDate() - 1);
-
-        const t = new Date();
-
-        const tm = new Date();
-        tm.setDate(tm.getDate() + 1);
-
-        function format(date) {
-
-            return date
-                .toLocaleDateString("en-GB")
-                .replace(/\//g, "-");
-
-        }
-
-        keepDates.push(format(y));
-        keepDates.push(format(t));
-        keepDates.push(format(tm));
-
-        const snap = await matchesRef.once("value");
-
-        snap.forEach((child) => {
-
-            const match = child.val();
-
-            if (!match) return;
-
-            if (!keepDates.includes(match.date)) {
-
-                child.ref.remove();
-
-            }
-
-        });
-
-        console.log("Old date matches removed.");
-
-        console.log(
-            "===== Firebase Sync Completed ====="
-        );
-
-    } catch (e) {
-
-        console.error("Sync Error:", e);
-
-    }
-
-}
-
-syncMatches();
-        
+    
