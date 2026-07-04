@@ -277,7 +277,7 @@ async function syncMatches() {
                 shortStatus:
                     shortStatus,
 
-                streamUrl: "",
+                streamUrl: game.streamUrl || "",
 
                 stadium:
                     venue.name || "",
