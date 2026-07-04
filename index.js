@@ -379,26 +379,7 @@ async function syncMatches() {
 
 });
 
-    const m = child.val();
-
-    if (!m) {
-        continue;
-    }
-
-    // Remove old date
-    if (m.date !== todayDate) {
-        await child.ref.remove();
-        continue;
-    }
-
-    // Remove unselected competitions
-    if (
-        allowedCompetitions.length > 0 &&
-        !allowedCompetitions.includes(m.competitionId)
-    ) {
-        await child.ref.remove();
-    }
-        }
+    
 
 
         console.log(
