@@ -359,21 +359,28 @@ async function syncMatches() {
 
         
 
-        allMatches.forEach(child => {
+        for (const child of allMatches.getChildren()) {
 
-            const m = child.val();
+    const m = child.val();
 
-            if (!m) return;
+    if (!m) {
+        continue;
+    }
 
-            // Remove old date
+    // Remove old date
+    if (m.date !== todayDate) {
+        await child.ref.remove();
+        continue;
+    }
 
-            if (m.date !== todayDate) {
-
-                child.ref.remove();
-
-                return;
-
-            }
+    // Remove unselected competitions
+    if (
+        allowedCompetitions.length > 0 &&
+        !allowedCompetitions.includes(m.competitionId)
+    ) {
+        await child.ref.remove();
+    }
+        }
 
             // Remove unselected competitions
 
