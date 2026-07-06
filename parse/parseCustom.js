@@ -3,22 +3,11 @@ module.exports = function (data) {
     const competitions = [];
     const games = [];
 
-    if (!data) {
-
-        return {
-            competitions,
-            games
-        };
-
-    }
-
-    // Competitions
-
     (data.competitions || []).forEach(function (c) {
 
         competitions.push({
 
-            id: Number(c.id || 0),
+            id: Number(c.id),
 
             name: c.name || ""
 
@@ -26,37 +15,44 @@ module.exports = function (data) {
 
     });
 
-    // Games
-
     (data.games || []).forEach(function (g) {
 
-        const start = new Date(g.startTime || Date.now());
+        const start = new Date(g.startTime);
 
         games.push({
 
-            gameId: Number(g.id || g.gameId || 0),
+            gameId:
+                Number(g.id),
 
-            competitionId: Number(g.competitionId || 0),
+            competitionId:
+                Number(g.competitionId),
 
-            league: g.competitionDisplayName || g.league || "",
+            league:
+                g.competitionName || "",
 
-            home: g.home || "",
+            home:
+                g.homeName || "",
 
-            away: g.away || "",
+            away:
+                g.awayName || "",
 
-            score: g.score || "VS",
+            score:
+                g.score || "VS",
 
-            status: g.status || "Scheduled",
+            status:
+                g.status || "Scheduled",
 
-            shortStatus: g.shortStatus || "",
+            shortStatus:
+                g.shortStatus || g.status || "Scheduled",
 
-            streamUrl: g.streamUrl || "",
+            streamUrl:
+                g.streamUrl || "",
 
-            stadium: g.stadium || "",
+            stadium:
+                g.stadium || "",
 
             date:
-                start
-                    .toLocaleDateString("en-GB")
+                start.toLocaleDateString("en-GB")
                     .replace(/\//g, "-"),
 
             time:
@@ -85,6 +81,7 @@ module.exports = function (data) {
     return {
 
         competitions,
+
         games
 
     };
