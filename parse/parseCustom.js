@@ -3,58 +3,84 @@ module.exports = function (data) {
     const competitions = [];
     const games = [];
 
-    // ഇവിടെ നിങ്ങളുടെ Custom API JSON
-    // standard format ലേക്ക് convert ചെയ്യുക.
+    if (!data) {
 
-    /*
-    games.push({
+        return {
+            competitions,
+            games
+        };
 
-        id: ...,
+    }
 
-        competitionId: ...,
+    // Competitions
 
-        competitionDisplayName: ...,
+    (data.competitions || []).forEach(function (c) {
 
-        homeCompetitor: {
+        competitions.push({
 
-            id: ...,
+            id: Number(c.id || 0),
 
-            name: ...,
+            name: c.name || ""
 
-            score: ...
-
-        },
-
-        awayCompetitor: {
-
-            id: ...,
-
-            name: ...,
-
-            score: ...
-
-        },
-
-        venue: {
-
-            name: ...
-
-        },
-
-        streamUrl: ...,
-
-        statusText: ...,
-
-        shortStatusText: ...,
-
-        startTime: ...,
-
-        homeLogo: ...,
-
-        awayLogo: ...
+        });
 
     });
-    */
+
+    // Games
+
+    (data.games || []).forEach(function (g) {
+
+        const start = new Date(g.startTime || Date.now());
+
+        games.push({
+
+            gameId: Number(g.id || g.gameId || 0),
+
+            competitionId: Number(g.competitionId || 0),
+
+            league: g.competitionDisplayName || g.league || "",
+
+            home: g.home || "",
+
+            away: g.away || "",
+
+            score: g.score || "VS",
+
+            status: g.status || "Scheduled",
+
+            shortStatus: g.shortStatus || "",
+
+            streamUrl: g.streamUrl || "",
+
+            stadium: g.stadium || "",
+
+            date:
+                start
+                    .toLocaleDateString("en-GB")
+                    .replace(/\//g, "-"),
+
+            time:
+                start.toLocaleTimeString(
+                    "en-US",
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true
+                    }
+                ),
+
+            matchTimeMillis:
+                start.getTime(),
+
+            homeLogo:
+                g.homeLogo || "",
+
+            awayLogo:
+                g.awayLogo || ""
+
+        });
+
+    });
 
     return {
 
