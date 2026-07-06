@@ -502,3 +502,50 @@ async function syncMatches() {
         // (keepDates, remove old matches, syncMatches();)
         // അതേപോലെ തന്നെ തുടരാം.
 
+        const keepDates = [];
+
+        function formatKeepDate(date) {
+            return date
+                .toLocaleDateString("en-GB")
+                .replace(/\//g, "-");
+        }
+
+        keepDates.push(formatKeepDate(yesterday));
+        keepDates.push(formatKeepDate(today));
+        keepDates.push(formatKeepDate(tomorrow));
+
+        const snap = await matchesRef.once("value");
+
+        snap.forEach((child) => {
+
+            const match = child.val();
+
+            if (!match) return;
+
+            if (
+                allowedCompetitions.length > 0 &&
+                !allowedCompetitions.includes(match.competitionId)
+            ) {
+                child.ref.remove();
+                return;
+            }
+
+            if (!keepDates.includes(match.date)) {
+                child.ref.remove();
+            }
+
+        });
+
+        console.log("Old matches removed.");
+        console.log("===== Firebase Sync Completed =====");
+
+    } catch (e) {
+
+        console.error("Sync Error:", e);
+
+    }
+
+}
+
+syncMatches();
+
