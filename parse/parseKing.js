@@ -5,14 +5,12 @@ function convertKingDate(esd) {
     esd = String(esd);
 
     return new Date(
-
-        Number(esd.substring(0,4)),
-        Number(esd.substring(4,6)) - 1,
-        Number(esd.substring(6,8)),
-        Number(esd.substring(8,10)),
-        Number(esd.substring(10,12)),
-        Number(esd.substring(12,14))
-
+        Number(esd.substring(0, 4)),
+        Number(esd.substring(4, 6)) - 1,
+        Number(esd.substring(6, 8)),
+        Number(esd.substring(8, 10)),
+        Number(esd.substring(10, 12)),
+        Number(esd.substring(12, 14))
     );
 
 }
@@ -25,67 +23,83 @@ module.exports = function (data) {
     if (!data || !data.Stages) {
 
         return {
-
             competitions,
             games
-
         };
 
     }
 
     data.Stages.forEach(function (stage) {
 
+        const competitionId = Number(stage.CompId || stage.Sid || 0);
+
         competitions.push({
-
-            id: Number(stage.CompId || stage.Sid || 0),
-
+            id: competitionId,
             name: stage.Snm || ""
-
         });
 
         (stage.Events || []).forEach(function (ev) {
 
+            const start = convertKingDate(ev.Esd);
+
+            let score = "VS";
+
+            if (
+                ev.Tr1 !== undefined &&
+                ev.Tr2 !== undefined &&
+                ev.Tr1 !== "" &&
+                ev.Tr2 !== ""
+            ) {
+
+                score = ev.Tr1 + " - " + ev.Tr2;
+
+            }
+
             games.push({
 
-                id: Number(ev.Eid || ev.Id || 0),
+                gameId: Number(ev.Eid || ev.Id || 0),
 
-                competitionId: Number(stage.CompId || stage.Sid || 0),
+                competitionId: competitionId,
 
-                competitionDisplayName: stage.Snm || "",
+                league: stage.Snm || "",
 
-                homeCompetitor: {
+                home:
+                    ev.T1 && ev.T1[0]
+                        ? ev.T1[0].Nm
+                        : "",
 
-                    id: Number(ev.T1 && ev.T1[0] ? ev.T1[0].ID : 0),
+                away:
+                    ev.T2 && ev.T2[0]
+                        ? ev.T2[0].Nm
+                        : "",
 
-                    name: ev.T1 && ev.T1[0] ? ev.T1[0].Nm : "",
+                score: score,
 
-                    score: Number(ev.Tr1 || 0)
+                status: ev.Eps || "Scheduled",
 
-                },
-
-                awayCompetitor: {
-
-                    id: Number(ev.T2 && ev.T2[0] ? ev.T2[0].ID : 0),
-
-                    name: ev.T2 && ev.T2[0] ? ev.T2[0].Nm : "",
-
-                    score: Number(ev.Tr2 || 0)
-
-                },
-
-                venue: {
-
-                    name: ""
-
-                },
+                shortStatus: ev.Eps || "",
 
                 streamUrl: "",
 
-                statusText: ev.Eps || "",
+                stadium: "",
 
-                shortStatusText: ev.Eps || "",
+                date:
+                    start
+                        .toLocaleDateString("en-GB")
+                        .replace(/\//g, "-"),
 
-                startTime: convertKingDate(ev.Esd),
+                time:
+                    start.toLocaleTimeString(
+                        "en-US",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    ),
+
+                matchTimeMillis:
+                    start.getTime(),
 
                 homeLogo:
                     "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
@@ -102,10 +116,8 @@ module.exports = function (data) {
     });
 
     return {
-
         competitions,
         games
-
     };
 
 };
