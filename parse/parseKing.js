@@ -31,16 +31,24 @@ module.exports = function (data) {
 
     data.Stages.forEach(function (stage) {
 
-        const competitionId = Number(stage.CompId || stage.Sid || 0);
+        const competitionId =
+            Number(stage.CompId || stage.Sid || 0);
 
         competitions.push({
+
             id: competitionId,
+
             name: stage.Snm || ""
+
         });
 
         (stage.Events || []).forEach(function (ev) {
 
-            const start = convertKingDate(ev.Esd);
+            const start =
+                convertKingDate(ev.Esd);
+
+            let status =
+                ev.Eps || "Scheduled";
 
             let score = "VS";
 
@@ -51,17 +59,21 @@ module.exports = function (data) {
                 ev.Tr2 !== ""
             ) {
 
-                score = ev.Tr1 + " - " + ev.Tr2;
+                score =
+                    ev.Tr1 + " - " + ev.Tr2;
 
             }
 
             games.push({
 
-                gameId: Number(ev.Eid || ev.Id || 0),
+                gameId:
+                    Number(ev.Eid || ev.Id || 0),
 
-                competitionId: competitionId,
+                competitionId:
+                    competitionId,
 
-                league: stage.Snm || "",
+                league:
+                    stage.Snm || "",
 
                 home:
                     ev.T1 && ev.T1[0]
@@ -73,15 +85,20 @@ module.exports = function (data) {
                         ? ev.T2[0].Nm
                         : "",
 
-                score: score,
+                score:
+                    score,
 
-                status: ev.Eps || "Scheduled",
+                status:
+                    status,
 
-                shortStatus: ev.Eps || "",
+                shortStatus:
+                    status,
 
-                streamUrl: "",
+                streamUrl:
+                    "",
 
-                stadium: "",
+                stadium:
+                    "",
 
                 date:
                     start
@@ -89,25 +106,30 @@ module.exports = function (data) {
                         .replace(/\//g, "-"),
 
                 time:
-                    start.toLocaleTimeString(
-                        "en-US",
-                        {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true
-                        }
-                    ),
+                    start
+                        .toLocaleTimeString(
+                            "en-US",
+                            {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true
+                            }
+                        ),
 
                 matchTimeMillis:
                     start.getTime(),
 
                 homeLogo:
                     "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
-                    (ev.T1 && ev.T1[0] ? ev.T1[0].Img : ""),
+                    (ev.T1 && ev.T1[0]
+                        ? ev.T1[0].Img
+                        : ""),
 
                 awayLogo:
                     "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
-                    (ev.T2 && ev.T2[0] ? ev.T2[0].Img : "")
+                    (ev.T2 && ev.T2[0]
+                        ? ev.T2[0].Img
+                        : "")
 
             });
 
@@ -116,8 +138,11 @@ module.exports = function (data) {
     });
 
     return {
+
         competitions,
+
         games
+
     };
 
 };
