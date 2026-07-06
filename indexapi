@@ -278,3 +278,227 @@ async function syncMatches() {
 
         const matchesRef = db.ref("matches");
 
+        // Start processing games
+
+        for (const game of games) {
+
+            const competitionId =
+                game.competitionId || 0;
+
+            if (
+                allowedCompetitions.length > 0 &&
+                !allowedCompetitions.includes(
+                    competitionId
+                )
+            ) {
+                continue;
+            }
+
+            const home =
+                game.homeCompetitor || {};
+
+            const away =
+                game.awayCompetitor || {};
+
+            const venue =
+                game.venue || {};
+
+            console.log(
+                "Processing:",
+                home.name,
+                "vs",
+                away.name
+            );
+
+            let status =
+                game.statusText || "";
+
+            let shortStatus =
+                game.shortStatusText || "";
+
+            let adapterStatus = "";
+
+            const s = status.toLowerCase();
+            const ss = shortStatus.toUpperCase();
+
+            if (
+                s.includes("ended") ||
+                s.includes("finished")
+            ) {
+
+                adapterStatus = "FT";
+
+            } else if (
+                s.includes("penalties")
+            ) {
+
+                adapterStatus = "AP";
+
+            } else if (
+                s.includes("scheduled")
+            ) {
+
+                adapterStatus = "Scheduled";
+
+            } else if (
+                s.includes("postponed")
+            ) {
+
+                adapterStatus = "Postponed";
+
+            } else if (
+                s.includes("cancelled")
+            ) {
+
+                adapterStatus = "Cancelled";
+
+            } else if (
+                s.includes("abandoned")
+            ) {
+
+                adapterStatus = "Abandoned";
+
+            } else {
+
+                adapterStatus =
+                    ss.includes("'") ||
+                    ss === "HT" ||
+                    ss === "LIVE" ||
+                    ss === "ET" ||
+                    ss.includes("+")
+                    ? shortStatus
+                    : "LIVE";
+
+            }
+
+            let score = "VS";
+
+            if (
+                adapterStatus !== "Scheduled" &&
+                adapterStatus !== "Postponed" &&
+                adapterStatus !== "Cancelled" &&
+                adapterStatus !== "Abandoned"
+            ) {
+
+                score =
+                    (home.score ?? 0) +
+                    " - " +
+                    (away.score ?? 0);
+
+                if (
+                    adapterStatus === "AP" &&
+                    home.penaltyScore != null &&
+                    away.penaltyScore != null
+                ) {
+
+                    score +=
+                        " (P " +
+                        home.penaltyScore +
+                        "-" +
+                        away.penaltyScore +
+                        ")";
+
+                }
+
+            }
+
+            const start =
+                new Date(game.startTime);
+
+            const homeLogo =
+                game.homeLogo ||
+                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+                home.id;
+
+            const awayLogo =
+                game.awayLogo ||
+                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+                away.id;
+
+            const matchData = {
+
+                gameId: game.id,
+
+                competitionId,
+
+                league:
+                    game.competitionDisplayName || "",
+
+                home:
+                    home.name || "",
+
+                away:
+                    away.name || "",
+
+                score,
+
+                status:
+                    adapterStatus,
+
+                shortStatus,
+
+                streamUrl:
+                    game.streamUrl || "",
+
+                stadium:
+                    venue.name || "",
+
+                date:
+                    start.toLocaleDateString("en-GB").replace(/\//g, "-"),
+
+                time:
+                    start.toLocaleTimeString(
+                        "en-US",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    ),
+
+                matchTimeMillis:
+                    start.getTime(),
+
+                homeLogo,
+
+                awayLogo
+
+            };
+
+            const oldSnap =
+                await matchesRef
+                    .child(String(game.id))
+                    .once("value");
+
+            if (oldSnap.exists()) {
+
+                const old = oldSnap.val();
+
+                if (
+                    old &&
+                    old.streamUrl &&
+                    old.streamUrl.trim() !== ""
+                ) {
+
+                    matchData.streamUrl =
+                        old.streamUrl;
+
+                }
+
+            }
+
+            await matchesRef
+                .child(String(game.id))
+                .set(matchData);
+
+            console.log(
+                "Updated:",
+                game.id
+            );
+
+        }
+
+        // ഇവിടെ നിന്ന് നിങ്ങളുടെ പഴയ cleanup code
+        // (keepDates, remove old matches, syncMatches();)
+        // അതേപോലെ തന്നെ തുടരാം.
+
