@@ -98,11 +98,12 @@ function parseKing(data) {
 
             games.push({
 
-                id: Number(ev.Eid),
+                id: Number(ev.Eid || ev.Id || 0),
 
                 competitionId: Number(stage.CompId || stage.Sid || 0),
 
-                competitionDisplayName: stage.Snm,
+                competitionDisplayName:
+    stage.Snm || stage.Cnm || "",
 
                 homeCompetitor: {
 
