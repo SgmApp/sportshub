@@ -10,232 +10,93 @@ admin.initializeApp({
 
 const db = admin.database();
 
-// ---------------- API CONFIG ----------------
+// ---------------- SETTINGS ----------------
 
-async function getApiConfig() {
+async function getSettings() {
 
     const snap = await db.ref("settings").once("value");
-    const settings = snap.val() || {};
 
-    return {
-
-        parser: settings.api_parser || "365",
-
-        url:
-            settings.api_url ||
-            "https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=1&timezoneName=Asia/Kolkata&userCountryId=80&sports=1&startDate={startDate}&endDate={endDate}"
-
-    };
+    return snap.val() || {};
 
 }
 
-function formatApiUrl(url, startDate, endDate, today) {
+// ---------------- DATE ----------------
+
+function formatDate(date) {
+
+    return date.toISOString().split("T")[0];
+
+}
+
+function replaceDate(url, today, startDate, endDate) {
 
     return url
+        .replace("{date}", today)
         .replace("{startDate}", startDate)
-        .replace("{endDate}", endDate)
-        .replace("{date}", today);
+        .replace("{endDate}", endDate);
 
 }
 
-async function loadApi(parser, url) {
+// ---------------- LOAD API ----------------
 
-    const response = await axios.get(url);
+async function loadMatches() {
 
-    switch (parser) {
+    const settings = await getSettings();
 
-        case "365":
-            return parse365(response.data);
+    const today = new Date();
 
-        case "king":
-            return parseKing(response.data);
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
 
-        case "custom":
-            return parseCustom(response.data);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
-        default:
-            throw new Error("Unknown parser : " + parser);
+    const url = replaceDate(
 
-    }
+        settings.api_url,
 
-}
+        formatDate(today),
 
-function parse365(data) {
+        formatDate(yesterday),
 
-    return {
-
-        competitions: data.competitions || [],
-
-        games: data.games || []
-
-    };
-
-}
-
-function parseKing(data) {
-
-    const competitions = [];
-    const games = [];
-
-    if (!data || !data.Stages) {
-        return {
-            competitions,
-            games
-        };
-    }
-
-    data.Stages.forEach(stage => {
-
-        competitions.push({
-
-    id: Number(stage.CompId || stage.Sid || 0),
-
-    name: stage.Snm
-
-});
-
-        (stage.Events || []).forEach(ev => {
-
-            games.push({
-
-                id: Number(ev.Eid || ev.Id || 0),
-
-                competitionId: Number(stage.CompId || stage.Sid || 0),
-
-                competitionDisplayName:
-    stage.Snm || stage.Cnm || "",
-
-                homeCompetitor: {
-
-                    id: Number(ev.T1?.[0]?.ID || 0),
-
-                    name: ev.T1?.[0]?.Nm || "",
-
-                    score: Number(ev.Tr1 || 0)
-
-                },
-
-                awayCompetitor: {
-
-                    id: Number(ev.T2?.[0]?.ID || 0),
-
-                    name: ev.T2?.[0]?.Nm || "",
-
-                    score: Number(ev.Tr2 || 0)
-
-                },
-
-                venue: {
-
-                    name: ""
-
-                },
-
-                streamUrl: "",
-
-                statusText: ev.Eps || "",
-
-                shortStatusText: ev.Eps || "",
-
-                startTime: convertKingDate(ev.Esd),
-
-                homeLogo:
-                    "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
-                    (ev.T1?.[0]?.Img || ""),
-
-                awayLogo:
-                    "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
-                    (ev.T2?.[0]?.Img || "")
-
-            });
-
-        });
-
-    });
-
-    return {
-
-        competitions,
-
-        games
-
-    };
-
-}
-
-function parseCustom(data) {
-
-    return {
-
-        competitions: [],
-
-        games: []
-
-    };
-
-}
-
-function convertKingDate(esd) {
-
-    if (!esd)
-        return new Date();
-
-    const s = String(esd);
-
-    return new Date(
-
-        Number(s.substring(0, 4)),
-        Number(s.substring(4, 6)) - 1,
-        Number(s.substring(6, 8)),
-        Number(s.substring(8, 10)),
-        Number(s.substring(10, 12)),
-        Number(s.substring(12, 14))
+        formatDate(tomorrow)
 
     );
 
+    console.log("Loading API :", url);
+
+    const response = await axios.get(url);
+
+    return {
+
+        competitions:
+            response.data.competitions || [],
+
+        games:
+            response.data.games || [],
+
+        yesterday,
+        today,
+        tomorrow
+
+    };
+
 }
+
 async function syncMatches() {
 
     try {
 
         console.log("===== Sports Hub Sync Started =====");
 
-        const today = new Date();
+        const data = await loadMatches();
 
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
+        const competitions = data.competitions;
+        const games = data.games;
 
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        function formatDate(date) {
-            return date.toISOString().split("T")[0];
-        }
-
-        const startDate = formatDate(yesterday);
-        const endDate = formatDate(tomorrow);
-
-        // ---------- Dynamic API ----------
-
-        const api = await getApiConfig();
-
-        const apiUrl = formatApiUrl(
-            api.url,
-            startDate,
-            endDate,
-            formatDate(today)
-        );
-
-        console.log("API :", api.parser);
-        console.log(apiUrl);
-
-        const parsed = await loadApi(
-            api.parser,
-            apiUrl
-        );
-
-        const competitions = parsed.competitions;
-        const games = parsed.games;
+        const yesterday = data.yesterday;
+        const today = data.today;
+        const tomorrow = data.tomorrow;
 
         console.log("Competitions :", competitions.length);
         console.log("Games :", games.length);
@@ -254,6 +115,8 @@ async function syncMatches() {
         }
 
         console.log("Competition list updated.");
+
+        // Read selected competitions
 
         const compSnap =
             await db.ref("competitions").once("value");
@@ -277,6 +140,11 @@ async function syncMatches() {
 
         });
 
+        console.log(
+            "Selected competitions :",
+            allowedCompetitions.length
+        );
+
         const matchesRef = db.ref("matches");
 
         // Start processing games
@@ -292,7 +160,9 @@ async function syncMatches() {
                     competitionId
                 )
             ) {
+
                 continue;
+
             }
 
             const home =
@@ -319,8 +189,11 @@ async function syncMatches() {
 
             let adapterStatus = "";
 
-            const s = status.toLowerCase();
-            const ss = shortStatus.toUpperCase();
+            const s =
+                status.toLowerCase();
+
+            const ss =
+                shortStatus.toUpperCase();
 
             if (
                 s.includes("ended") ||
@@ -386,39 +259,15 @@ async function syncMatches() {
                     " - " +
                     (away.score ?? 0);
 
-                if (
-                    adapterStatus === "AP" &&
-                    home.penaltyScore != null &&
-                    away.penaltyScore != null
-                ) {
-
-                    score +=
-                        " (P " +
-                        home.penaltyScore +
-                        "-" +
-                        away.penaltyScore +
-                        ")";
-
-                }
-
             }
 
             const start =
                 new Date(game.startTime);
 
-            const homeLogo =
-                game.homeLogo ||
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
-                home.id;
-
-            const awayLogo =
-                game.awayLogo ||
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
-                away.id;
-
             const matchData = {
 
-                gameId: game.id,
+                gameId:
+                    game.id,
 
                 competitionId,
 
@@ -445,7 +294,8 @@ async function syncMatches() {
                     venue.name || "",
 
                 date:
-                    start.toLocaleDateString("en-GB").replace(/\//g, "-"),
+                    start.toLocaleDateString("en-GB")
+                        .replace(/\//g, "-"),
 
                 time:
                     start.toLocaleTimeString(
@@ -460,9 +310,11 @@ async function syncMatches() {
                 matchTimeMillis:
                     start.getTime(),
 
-                homeLogo,
+                homeLogo:
+                    game.homeLogo || "",
 
-                awayLogo
+                awayLogo:
+                    game.awayLogo || ""
 
             };
 
@@ -473,7 +325,8 @@ async function syncMatches() {
 
             if (oldSnap.exists()) {
 
-                const old = oldSnap.val();
+                const old =
+                    oldSnap.val();
 
                 if (
                     old &&
@@ -499,16 +352,16 @@ async function syncMatches() {
 
         }
 
-        // ഇവിടെ നിന്ന് നിങ്ങളുടെ പഴയ cleanup code
-        // (keepDates, remove old matches, syncMatches();)
-        // അതേപോലെ തന്നെ തുടരാം.
+        // Keep only Yesterday + Today + Tomorrow
 
         const keepDates = [];
 
         function formatKeepDate(date) {
+
             return date
                 .toLocaleDateString("en-GB")
                 .replace(/\//g, "-");
+
         }
 
         keepDates.push(formatKeepDate(yesterday));
@@ -521,18 +374,29 @@ async function syncMatches() {
 
             const match = child.val();
 
-            if (!match) return;
+            if (!match)
+                return;
+
+            // Delete matches of unselected competitions
 
             if (
                 allowedCompetitions.length > 0 &&
-                !allowedCompetitions.includes(match.competitionId)
+                !allowedCompetitions.includes(
+                    match.competitionId
+                )
             ) {
+
                 child.ref.remove();
                 return;
+
             }
 
+            // Delete old matches
+
             if (!keepDates.includes(match.date)) {
+
                 child.ref.remove();
+
             }
 
         });
@@ -542,12 +406,10 @@ async function syncMatches() {
 
     } catch (e) {
 
-        console.error("Sync Error:", e);
+        console.error("Sync Error :", e);
 
     }
 
 }
 
 syncMatches();
-
-
