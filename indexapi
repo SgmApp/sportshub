@@ -88,11 +88,11 @@ function parseKing(data) {
 
         competitions.push({
 
-            id: Number(stage.CompId),
+    id: Number(stage.CompId || stage.Sid || 0),
 
-            name: stage.Snm
+    name: stage.Snm
 
-        });
+});
 
         (stage.Events || []).forEach(ev => {
 
@@ -100,7 +100,7 @@ function parseKing(data) {
 
                 id: Number(ev.Eid),
 
-                competitionId: Number(stage.CompId),
+                competitionId: Number(stage.CompId || stage.Sid || 0),
 
                 competitionDisplayName: stage.Snm,
 
