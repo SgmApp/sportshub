@@ -1,6 +1,10 @@
 const axios = require("axios");
 const admin = require("firebase-admin");
 
+const parse365 = require("./parse/parse365");
+const parseKing = require("./parse/parseKing");
+const parseCustom = require("./parse/parseCustom");
+
 const serviceAccount = JSON.parse(process.env.FIREBASE_KEY);
 
 admin.initializeApp({
@@ -10,42 +14,148 @@ admin.initializeApp({
 
 const db = admin.database();
 
+// ---------------- SETTINGS ----------------
+
+async function getSettings() {
+
+    const snap = await db.ref("settings").once("value");
+
+    return snap.val() || {};
+
+}
+
+// ---------------- DATE ----------------
+
+function formatDate(date) {
+
+    return date.toISOString().split("T")[0];
+
+}
+
+function replaceDate(url, today, startDate, endDate) {
+
+    return url
+        .replace("{date}", today)
+        .replace("{startDate}", startDate)
+        .replace("{endDate}", endDate);
+
+}
+
+// ---------------- LOAD API ----------------
+
+async function loadMatches() {
+
+    const settings = await getSettings();
+
+    const today = new Date();
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const selected =
+        settings.selected_parser || "parse1";
+
+    const parserSettings =
+        settings.parse[selected];
+
+    if (!parserSettings) {
+
+        throw new Error("Parser not found");
+
+    }
+
+    const apiParser =
+        parserSettings.api_parser;
+
+    const apiUrl =
+        replaceDate(
+            parserSettings.api_url,
+            formatDate(today),
+            formatDate(yesterday),
+            formatDate(tomorrow)
+        );
+
+    console.log("Parser :", apiParser);
+    console.log("API :", apiUrl);
+
+    const response =
+        await axios.get(apiUrl);
+
+    let parsed;
+
+    switch (apiParser.toLowerCase()) {
+
+        case "365":
+
+            parsed =
+                parse365(response.data);
+
+            break;
+
+        case "king":
+
+            parsed =
+                parseKing(response.data);
+
+            break;
+
+        case "custom":
+
+            parsed =
+                parseCustom(response.data);
+
+            break;
+
+        default:
+
+            throw new Error("Unknown Parser");
+
+    }
+
+    parsed.yesterday = yesterday;
+    parsed.today = today;
+    parsed.tomorrow = tomorrow;
+
+    return parsed;
+
+}
+
 async function syncMatches() {
 
     try {
 
         console.log("===== Sports Hub Sync Started =====");
 
-        // Yesterday / Today / Tomorrow
-
-        const today = new Date();
-
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        function formatDate(date) {
-            return date.toISOString().split("T")[0];
-        }
-
-        const startDate = formatDate(yesterday);
-        const endDate = formatDate(tomorrow);
-
-        const url =
-            `https://webws.365scores.com/web/games/allscores/?appTypeId=5&langId=1&timezoneName=Asia/Kolkata&userCountryId=80&sports=1&startDate=${startDate}&endDate=${endDate}`;
-
-        const response = await axios.get(url);
+        const data =
+            await loadMatches();
 
         const competitions =
-            response.data.competitions || [];
+            data.competitions || [];
 
         const games =
-            response.data.games || [];
+            data.games || [];
 
-        console.log("Competitions :", competitions.length);
-        console.log("Games :", games.length);
+        const yesterday =
+            data.yesterday;
+
+        const today =
+            data.today;
+
+        const tomorrow =
+            data.tomorrow;
+
+        console.log(
+            "Competitions :",
+            competitions.length
+        );
+
+        console.log(
+            "Games :",
+            games.length
+        );
 
         // Save competitions
 
@@ -54,25 +164,31 @@ async function syncMatches() {
             await db.ref("competitions")
                 .child(String(c.id))
                 .update({
+
                     id: c.id,
+
                     name: c.name
+
                 });
 
         }
 
-        console.log("Competition list updated.");
+        console.log(
+            "Competition list updated."
+        );
 
         // Read selected competitions
 
-        const compSnap = await db
-            .ref("competitions")
-            .once("value");
+        const compSnap =
+            await db.ref("competitions")
+                .once("value");
 
         let allowedCompetitions = [];
 
-        compSnap.forEach(child => {
+        compSnap.forEach((child) => {
 
-            const competition = child.val();
+            const competition =
+                child.val();
 
             if (
                 competition &&
@@ -92,16 +208,15 @@ async function syncMatches() {
             allowedCompetitions.length
         );
 
-        const matchesRef = db.ref("matches");
+        const matchesRef =
+            db.ref("matches");
 
-            // Start processing games
+        // Process matches
 
         for (const game of games) {
 
             const competitionId =
                 game.competitionId || 0;
-
-            // Skip unselected competitions
 
             if (
                 allowedCompetitions.length > 0 &&
@@ -114,205 +229,66 @@ async function syncMatches() {
 
             }
 
-            const home =
-                game.homeCompetitor || {};
-
-            const away =
-                game.awayCompetitor || {};
-
-            const venue =
-                game.venue || {};
-
             console.log(
-                "Processing:",
-                home.name,
+                "Processing :",
+                game.home,
                 "vs",
-                away.name
+                game.away
             );
-
-            // Status
-
-            let status =
-                game.statusText || "";
-
-            let shortStatus =
-                game.shortStatusText || "";
-
-            let adapterStatus = "";
-
-            const s =
-                status.toLowerCase();
-
-            const ss =
-                shortStatus.toUpperCase();
-
-            if (
-                s.includes("ended") ||
-                s.includes("finished")
-            ) {
-
-                adapterStatus = "FT";
-
-            } else if (
-                s.includes("penalties")
-            ) {
-
-                adapterStatus = "AP";
-
-            } else if (
-                s.includes("scheduled")
-            ) {
-
-                adapterStatus = "Scheduled";
-
-            } else if (
-                s.includes("postponed")
-            ) {
-
-                adapterStatus = "Postponed";
-
-            } else if (
-                s.includes("cancelled")
-            ) {
-
-                adapterStatus = "Cancelled";
-
-            } else if (
-                s.includes("abandoned")
-            ) {
-
-                adapterStatus = "Abandoned";
-
-            } else {
-
-                if (
-                    ss.includes("'") ||
-                    ss === "HT" ||
-                    ss === "LIVE" ||
-                    ss === "ET" ||
-                    ss.includes("+")
-                ) {
-
-                    adapterStatus = shortStatus;
-
-                } else {
-
-                    adapterStatus = "LIVE";
-
-                }
-
-            }
-
-                    // Score
-
-            let score = "VS";
-
-            if (
-                adapterStatus !== "Scheduled" &&
-                adapterStatus !== "Postponed" &&
-                adapterStatus !== "Cancelled" &&
-                adapterStatus !== "Abandoned"
-            ) {
-
-                const homeScore =
-                    home.score ?? 0;
-
-                const awayScore =
-                    away.score ?? 0;
-
-                score =
-                    homeScore +
-                    " - " +
-                    awayScore;
-
-                if (
-                    adapterStatus === "AP" &&
-                    home.penaltyScore != null &&
-                    away.penaltyScore != null
-                ) {
-
-                    score +=
-                        " (P " +
-                        home.penaltyScore +
-                        "-" +
-                        away.penaltyScore +
-                        ")";
-
-                }
-
-            }
-
-            const start =
-                new Date(game.startTime);
-
-            const homeLogo =
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
-                home.id;
-
-            const awayLogo =
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
-                away.id;
-
             const matchData = {
 
-                gameId: game.id,
+                gameId:
+                    game.gameId,
 
-                competitionId: competitionId,
+                competitionId:
+                    game.competitionId,
 
                 league:
-                    game.competitionDisplayName || "",
+                    game.league,
 
                 home:
-                    home.name || "",
+                    game.home,
 
                 away:
-                    away.name || "",
+                    game.away,
 
                 score:
-                    score,
+                    game.score,
 
                 status:
-                    adapterStatus,
+                    game.status,
 
                 shortStatus:
-                    shortStatus,
+                    game.shortStatus,
 
-                streamUrl: game.streamUrl || "",
+                streamUrl:
+                    game.streamUrl || "",
 
                 stadium:
-                    venue.name || "",
+                    game.stadium,
 
                 date:
-                    start
-                        .toLocaleDateString("en-GB")
-                        .replace(/\//g, "-"),
+                    game.date,
 
                 time:
-                    start.toLocaleTimeString(
-                        "en-US",
-                        {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true
-                        }
-                    ),
+                    game.time,
 
                 matchTimeMillis:
-                    start.getTime(),
+                    game.matchTimeMillis,
 
                 homeLogo:
-                    homeLogo,
+                    game.homeLogo,
 
                 awayLogo:
-                    awayLogo
+                    game.awayLogo
 
             };
 
-                    // Preserve existing streamUrl
+            // Preserve existing streamUrl
 
             const oldSnap =
                 await matchesRef
-                    .child(String(game.id))
+                    .child(String(game.gameId))
                     .once("value");
 
             if (oldSnap.exists()) {
@@ -333,45 +309,59 @@ async function syncMatches() {
 
             }
 
-            // Save / Update match
-
             await matchesRef
-                .child(String(game.id))
+                .child(String(game.gameId))
                 .set(matchData);
 
             console.log(
                 "Updated:",
-                game.id
+                game.gameId
             );
 
         }
+
         // Keep only Yesterday + Today + Tomorrow
 
         const keepDates = [];
 
         function formatKeepDate(date) {
+
             return date
                 .toLocaleDateString("en-GB")
                 .replace(/\//g, "-");
+
         }
 
-        keepDates.push(formatKeepDate(yesterday));
-        keepDates.push(formatKeepDate(today));
-        keepDates.push(formatKeepDate(tomorrow));
+        keepDates.push(
+            formatKeepDate(yesterday)
+        );
 
-        const snap = await matchesRef.once("value");
+        keepDates.push(
+            formatKeepDate(today)
+        );
+
+        keepDates.push(
+            formatKeepDate(tomorrow)
+        );
+
+        const snap =
+            await matchesRef.once("value");
 
         snap.forEach((child) => {
 
-            const match = child.val();
+            const match =
+                child.val();
 
-            if (!match) return;
+            if (!match)
+                return;
 
             // Delete matches of unselected competitions
 
             if (
                 allowedCompetitions.length > 0 &&
-                !allowedCompetitions.includes(match.competitionId)
+                !allowedCompetitions.includes(
+                    match.competitionId
+                )
             ) {
 
                 child.ref.remove();
@@ -379,9 +369,13 @@ async function syncMatches() {
 
             }
 
-            // Delete matches except Yesterday / Today / Tomorrow
+            // Delete old matches
 
-            if (!keepDates.includes(match.date)) {
+            if (
+                !keepDates.includes(
+                    match.date
+                )
+            ) {
 
                 child.ref.remove();
 
@@ -389,16 +383,23 @@ async function syncMatches() {
 
         });
 
-        console.log("Old matches removed.");
-        console.log("===== Firebase Sync Completed =====");
+        console.log(
+            "Old matches removed."
+        );
+
+        console.log(
+            "===== Firebase Sync Completed ====="
+        );
 
     } catch (e) {
 
-        console.error("Sync Error:", e);
+        console.error(
+            "Sync Error :",
+            e
+        );
 
     }
 
 }
 
 syncMatches();
-    
