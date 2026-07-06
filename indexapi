@@ -193,4 +193,88 @@ function convertKingDate(esd) {
     );
 
 }
+async function syncMatches() {
+
+    try {
+
+        console.log("===== Sports Hub Sync Started =====");
+
+        const today = new Date();
+
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        function formatDate(date) {
+            return date.toISOString().split("T")[0];
+        }
+
+        const startDate = formatDate(yesterday);
+        const endDate = formatDate(tomorrow);
+
+        // ---------- Dynamic API ----------
+
+        const api = await getApiConfig();
+
+        const apiUrl = formatApiUrl(
+            api.url,
+            startDate,
+            endDate,
+            formatDate(today)
+        );
+
+        console.log("API :", api.parser);
+        console.log(apiUrl);
+
+        const parsed = await loadApi(
+            api.parser,
+            apiUrl
+        );
+
+        const competitions = parsed.competitions;
+        const games = parsed.games;
+
+        console.log("Competitions :", competitions.length);
+        console.log("Games :", games.length);
+
+        // Save competitions
+
+        for (const c of competitions) {
+
+            await db.ref("competitions")
+                .child(String(c.id))
+                .update({
+                    id: c.id,
+                    name: c.name
+                });
+
+        }
+
+        console.log("Competition list updated.");
+
+        const compSnap =
+            await db.ref("competitions").once("value");
+
+        let allowedCompetitions = [];
+
+        compSnap.forEach(child => {
+
+            const competition = child.val();
+
+            if (
+                competition &&
+                competition.selected === true
+            ) {
+
+                allowedCompetitions.push(
+                    competition.id
+                );
+
+            }
+
+        });
+
+        const matchesRef = db.ref("matches");
 
