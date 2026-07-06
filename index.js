@@ -305,7 +305,7 @@ async function syncMatches() {
                     matchData.streamUrl =
                         old.streamUrl;
 
-                }
+                                }
 
             }
 
@@ -320,62 +320,58 @@ async function syncMatches() {
 
         }
 
-        // Keep only Yesterday + Today + Tomorrow
+        // Remove old competitions & matches only after successful sync
 
-        const keepDates = [];
+        const allCompetitions =
+            await db.ref("competitions").once("value");
 
-        function formatKeepDate(date) {
+        allCompetitions.forEach(function (child) {
 
-            return date
-                .toLocaleDateString("en-GB")
-                .replace(/\//g, "-");
+            let found = false;
 
-        }
+            for (const c of competitions) {
 
-        keepDates.push(
-            formatKeepDate(yesterday)
-        );
+                if (String(c.id) === child.key) {
 
-        keepDates.push(
-            formatKeepDate(today)
-        );
+                    found = true;
+                    break;
 
-        keepDates.push(
-            formatKeepDate(tomorrow)
-        );
+                }
 
-        const snap =
+            }
+
+            if (!found) {
+
+                child.ref.remove();
+
+            }
+
+        });
+
+        const allMatches =
             await matchesRef.once("value");
 
-        snap.forEach((child) => {
+        allMatches.forEach(function (child) {
 
-            const match =
-                child.val();
+            const match = child.val();
 
             if (!match)
                 return;
 
-            // Delete matches of unselected competitions
+            let found = false;
 
-            if (
-                allowedCompetitions.length > 0 &&
-                !allowedCompetitions.includes(
-                    match.competitionId
-                )
-            ) {
+            for (const game of games) {
 
-                child.ref.remove();
-                return;
+                if (game.gameId == match.gameId) {
+
+                    found = true;
+                    break;
+
+                }
 
             }
 
-            // Delete old matches
-
-            if (
-                !keepDates.includes(
-                    match.date
-                )
-            ) {
+            if (!found) {
 
                 child.ref.remove();
 
@@ -384,7 +380,7 @@ async function syncMatches() {
         });
 
         console.log(
-            "Old matches removed."
+            "Old competitions & matches removed."
         );
 
         console.log(
