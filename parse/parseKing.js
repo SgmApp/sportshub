@@ -23,8 +23,8 @@ module.exports = function (data) {
     if (!data || !data.Stages) {
 
         return {
-            competitions,
-            games
+            competitions: competitions,
+            games: games
         };
 
     }
@@ -38,7 +38,7 @@ module.exports = function (data) {
 
             id: competitionId,
 
-            name: stage.Snm || ""
+            name: stage.Cnm || stage.CompN || stage.Snm || ""
 
         });
 
@@ -47,20 +47,35 @@ module.exports = function (data) {
             const start =
                 convertKingDate(ev.Esd);
 
-            let status =
-                ev.Eps || "Scheduled";
+            const homeScore =
+                ev.Tr1 || "";
+
+            const awayScore =
+                ev.Tr2 || "";
 
             let score = "VS";
 
             if (
-                ev.Tr1 !== undefined &&
-                ev.Tr2 !== undefined &&
-                ev.Tr1 !== "" &&
-                ev.Tr2 !== ""
+                homeScore !== "" &&
+                awayScore !== ""
             ) {
 
                 score =
-                    ev.Tr1 + " - " + ev.Tr2;
+                    homeScore + " - " + awayScore;
+
+            }
+
+            let streamUrl = "";
+
+            if (
+                ev.Media &&
+                ev.Media["29"] &&
+                ev.Media["29"].length > 0 &&
+                ev.Media["29"][0].streamhls
+            ) {
+
+                streamUrl =
+                    ev.Media["29"][0].streamhls;
 
             }
 
@@ -73,63 +88,61 @@ module.exports = function (data) {
                     competitionId,
 
                 league:
-                    stage.Snm || "",
+                    stage.Cnm || stage.CompN || stage.Snm || "",
 
                 home:
                     ev.T1 && ev.T1[0]
-                        ? ev.T1[0].Nm
-                        : "",
+                    ? ev.T1[0].Nm
+                    : "",
 
                 away:
                     ev.T2 && ev.T2[0]
-                        ? ev.T2[0].Nm
-                        : "",
+                    ? ev.T2[0].Nm
+                    : "",
 
                 score:
                     score,
 
                 status:
-                    status,
+                    ev.Eps || "Scheduled",
 
                 shortStatus:
-                    status,
+                    ev.Eps || "Scheduled",
 
                 streamUrl:
-                    "",
+                    streamUrl,
 
                 stadium:
                     "",
 
                 date:
-                    start
-                        .toLocaleDateString("en-GB")
-                        .replace(/\//g, "-"),
+                    start.toLocaleDateString("en-GB")
+                    .replace(/\//g, "-"),
 
                 time:
-                    start
-                        .toLocaleTimeString(
-                            "en-US",
-                            {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true
-                            }
-                        ),
+                    start.toLocaleTimeString(
+                        "en-US",
+                        {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: true
+                        }
+                    ),
 
                 matchTimeMillis:
                     start.getTime(),
 
                 homeLogo:
-                    "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
-                    (ev.T1 && ev.T1[0]
-                        ? ev.T1[0].Img
-                        : ""),
+                    ev.T1 && ev.T1[0]
+                    ? "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
+                      ev.T1[0].Img
+                    : "",
 
                 awayLogo:
-                    "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
-                    (ev.T2 && ev.T2[0]
-                        ? ev.T2[0].Img
-                        : "")
+                    ev.T2 && ev.T2[0]
+                    ? "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/" +
+                      ev.T2[0].Img
+                    : ""
 
             });
 
@@ -139,9 +152,9 @@ module.exports = function (data) {
 
     return {
 
-        competitions,
+        competitions: competitions,
 
-        games
+        games: games
 
     };
 
