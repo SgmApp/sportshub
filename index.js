@@ -270,12 +270,7 @@ oldMatchesSnap.forEach(function (child) {
 
 await Promise.all(removeTasks);
 
-// Process matches
 
-for (const game of games) {
-
-    ...
-}
 
         // Process matches
 
