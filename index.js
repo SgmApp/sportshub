@@ -43,6 +43,7 @@ function replaceDate(url, today, startDate, endDate) {
 
 // ---------------- LOAD API ----------------
 
+
 async function loadMatches() {
 
     const settings = await getSettings();
@@ -58,21 +59,32 @@ async function loadMatches() {
     const selected =
         settings.selected_parser || "parse1";
 
-    const parserSettings =
-        settings.parse[selected];
+    if (
+        !settings.parse ||
+        !settings.parse[selected]
+    ) {
 
-    if (!parserSettings) {
-
-        throw new Error("Parser not found");
+        throw new Error(
+            "Parser not found : " + selected
+        );
 
     }
 
+    const parserSettings =
+        settings.parse[selected];
+
     const apiParser =
-        parserSettings.api_parser;
+        String(
+            parserSettings.api_parser || ""
+        )
+        .trim()
+        .toLowerCase();
 
     const apiUrl =
         replaceDate(
-            parserSettings.api_url,
+            String(
+                parserSettings.api_url || ""
+            ),
             formatDate(today),
             formatDate(yesterday),
             formatDate(tomorrow)
@@ -81,12 +93,18 @@ async function loadMatches() {
     console.log("Parser :", apiParser);
     console.log("API :", apiUrl);
 
+    if (!apiUrl) {
+
+        throw new Error("API URL Empty");
+
+    }
+
     const response =
         await axios.get(apiUrl);
 
     let parsed;
 
-    switch (apiParser.toLowerCase()) {
+    switch (apiParser) {
 
         case "365":
 
@@ -111,7 +129,9 @@ async function loadMatches() {
 
         default:
 
-            throw new Error("Unknown Parser");
+            throw new Error(
+                "Unknown Parser : " + apiParser
+            );
 
     }
 
