@@ -388,50 +388,18 @@ for (const game of games) {
 
         // Remove old competitions & matches only after successful sync
 
-        const allCompetitions =
-            await db.ref("competitions").once("value");
+        // Remove old competitions only
 
-        allCompetitions.forEach(function (child) {
+const allCompetitions =
+    await db.ref("competitions").once("value");
 
-            let found = false;
-
-            for (const c of competitions) {
-
-                if (String(c.id) === child.key) {
-
-                    found = true;
-                    break;
-
-                }
-
-            }
-
-            if (!found) {
-
-                child.ref.remove();
-
-            }
-
-        });
-
-        const allMatches =
-    await matchesRef.once("value");
-
-allMatches.forEach(function (child) {
-
-    const match = child.val();
-
-    if (!match)
-        return;
+allCompetitions.forEach(function (child) {
 
     let found = false;
 
-    for (const game of games) {
+    for (const c of competitions) {
 
-        if (
-            Number(game.gameId) === Number(match.gameId) &&
-            Number(game.competitionId) === Number(match.competitionId)
-        ) {
+        if (String(c.id) === child.key) {
 
             found = true;
             break;
@@ -442,33 +410,28 @@ allMatches.forEach(function (child) {
 
     if (!found) {
 
-        console.log(
-            "Removing old match:",
-            match.gameId
-        );
-
         child.ref.remove();
 
     }
 
 });
 
-        console.log(
-            "Old competitions & matches removed."
-        );
+console.log(
+    "Old competitions removed."
+);
 
-        console.log(
-            "===== Firebase Sync Completed ====="
-        );
+console.log(
+    "===== Firebase Sync Completed ====="
+);
 
-    } catch (e) {
+} catch (e) {
 
-        console.error(
-            "Sync Error :",
-            e
-        );
+    console.error(
+        "Sync Error :",
+        e
+    );
 
-    }
+}
 
 }
 
