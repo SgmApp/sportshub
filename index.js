@@ -231,22 +231,18 @@ async function syncMatches() {
         const matchesRef =
     db.ref("matches");
 
-// <<< ഈ ഭാഗത്ത് add ചെയ്യുക >>>
+const currentCompetitionIds = competitions.map(function (c) {
 
-const currentCompetitionIds = [];
+    return Number(c.id);
 
-for (const c of competitions) {
+});
 
-    currentCompetitionIds.push(
-        Number(c.id)
-    );
-
-}
-
-const oldMatches =
+const oldMatchesSnap =
     await matchesRef.once("value");
 
-oldMatches.forEach(function (child) {
+const removeTasks = [];
+
+oldMatchesSnap.forEach(function (child) {
 
     const match = child.val();
 
@@ -254,9 +250,9 @@ oldMatches.forEach(function (child) {
         return;
 
     if (
-        currentCompetitionIds.indexOf(
+        !currentCompetitionIds.includes(
             Number(match.competitionId)
-        ) === -1
+        )
     ) {
 
         console.log(
@@ -264,11 +260,15 @@ oldMatches.forEach(function (child) {
             match.gameId
         );
 
-        child.ref.remove();
+        removeTasks.push(
+            child.ref.remove()
+        );
 
     }
 
 });
+
+await Promise.all(removeTasks);
 
 // Process matches
 
