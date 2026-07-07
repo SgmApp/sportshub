@@ -151,6 +151,34 @@ async function syncMatches() {
 
         const data =
             await loadMatches();
+        const settings =
+    await getSettings();
+
+const parserSettings =
+    settings.parse[settings.selected_parser];
+
+const currentApi =
+    parserSettings.api_url;
+
+const apiSnap =
+    await db.ref("settings/last_api")
+        .once("value");
+
+const lastApi =
+    apiSnap.val() || "";
+
+const apiChanged =
+    currentApi !== lastApi;
+
+if (apiChanged) {
+
+    await db.ref("matches").remove();
+
+    await db.ref("competitions").remove();
+
+    await db.ref("settings/last_api")
+        .set(currentApi);
+
 
         const competitions =
             data.competitions || [];
