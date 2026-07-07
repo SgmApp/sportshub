@@ -425,11 +425,26 @@ allMatches.forEach(function (child) {
     if (!match)
         return;
 
+    const competitionId =
+        Number(match.competitionId);
+
+    const gameId =
+        Number(match.gameId);
+
     let found = false;
 
     for (const game of games) {
 
-        if (Number(game.gameId) === Number(match.gameId)) {
+        if (
+            Number(game.gameId) === gameId &&
+            Number(game.competitionId) === competitionId &&
+            (
+                allowedCompetitions.length === 0 ||
+                allowedCompetitions.includes(
+                    competitionId
+                )
+            )
+        ) {
 
             found = true;
             break;
@@ -442,7 +457,7 @@ allMatches.forEach(function (child) {
 
         console.log(
             "Removing old match:",
-            match.gameId
+            gameId
         );
 
         removeMatchTasks.push(
@@ -454,7 +469,6 @@ allMatches.forEach(function (child) {
 });
 
 await Promise.all(removeMatchTasks);
-
 // Remove old competitions
 
 const allCompetitions =
