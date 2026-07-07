@@ -149,10 +149,9 @@ async function syncMatches() {
 
         console.log("===== Sports Hub Sync Started =====");
 
-        const data =
-            await loadMatches();
-        const settings =
-    await getSettings();
+        const data = await loadMatches();
+
+const settings = await getSettings();
 
 const parserSettings =
     settings.parse[settings.selected_parser];
@@ -161,8 +160,7 @@ const currentApi =
     parserSettings.api_url;
 
 const apiSnap =
-    await db.ref("settings/last_api")
-        .once("value");
+    await db.ref("settings/last_api").once("value");
 
 const lastApi =
     apiSnap.val() || "";
@@ -178,6 +176,8 @@ if (apiChanged) {
 
     await db.ref("settings/last_api")
         .set(currentApi);
+
+}
 
 
         const competitions =
