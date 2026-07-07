@@ -381,9 +381,51 @@ await Promise.all(removeTasks);
 
         }
 
-        // Remove old competitions & matches only after successful sync
+        
 
-        // Remove old competitions only
+        // Remove old matches
+
+const allMatches =
+    await matchesRef.once("value");
+
+const removeMatchTasks = [];
+
+allMatches.forEach(function (child) {
+
+    const match = child.val();
+
+    if (!match)
+        return;
+
+    let found = false;
+
+    for (const game of games) {
+
+        if (Number(game.gameId) === Number(match.gameId)) {
+
+            found = true;
+            break;
+
+        }
+
+    }
+
+    if (!found) {
+
+        console.log(
+            "Removing old match:",
+            match.gameId
+        );
+
+        removeMatchTasks.push(
+            child.ref.remove()
+        );
+
+    }
+
+});
+
+await Promise.all(removeMatchTasks);
 
 // Remove old competitions
 
