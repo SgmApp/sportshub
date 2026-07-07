@@ -229,7 +229,53 @@ async function syncMatches() {
         );
 
         const matchesRef =
-            db.ref("matches");
+    db.ref("matches");
+
+// <<< ഈ ഭാഗത്ത് add ചെയ്യുക >>>
+
+const currentCompetitionIds = [];
+
+for (const c of competitions) {
+
+    currentCompetitionIds.push(
+        Number(c.id)
+    );
+
+}
+
+const oldMatches =
+    await matchesRef.once("value");
+
+oldMatches.forEach(function (child) {
+
+    const match = child.val();
+
+    if (!match)
+        return;
+
+    if (
+        currentCompetitionIds.indexOf(
+            Number(match.competitionId)
+        ) === -1
+    ) {
+
+        console.log(
+            "Removing old competition match:",
+            match.gameId
+        );
+
+        child.ref.remove();
+
+    }
+
+});
+
+// Process matches
+
+for (const game of games) {
+
+    ...
+}
 
         // Process matches
 
