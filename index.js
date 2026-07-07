@@ -385,8 +385,12 @@ await Promise.all(removeTasks);
 
         // Remove old competitions only
 
+// Remove old competitions
+
 const allCompetitions =
     await db.ref("competitions").once("value");
+
+const removeCompetitionTasks = [];
 
 allCompetitions.forEach(function (child) {
 
@@ -405,11 +409,15 @@ allCompetitions.forEach(function (child) {
 
     if (!found) {
 
-        child.ref.remove();
+        removeCompetitionTasks.push(
+            child.ref.remove()
+        );
 
     }
 
 });
+
+await Promise.all(removeCompetitionTasks);
 
 console.log(
     "Old competitions removed."
