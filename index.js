@@ -369,35 +369,43 @@ async function syncMatches() {
         });
 
         const allMatches =
-            await matchesRef.once("value");
+    await matchesRef.once("value");
 
-        allMatches.forEach(function (child) {
+allMatches.forEach(function (child) {
 
-            const match = child.val();
+    const match = child.val();
 
-            if (!match)
-                return;
+    if (!match)
+        return;
 
-            let found = false;
+    let found = false;
 
-            for (const game of games) {
+    for (const game of games) {
 
-                if (game.gameId == match.gameId) {
+        if (
+            Number(game.gameId) === Number(match.gameId) &&
+            Number(game.competitionId) === Number(match.competitionId)
+        ) {
 
-                    found = true;
-                    break;
+            found = true;
+            break;
 
-                }
+        }
 
-            }
+    }
 
-            if (!found) {
+    if (!found) {
 
-                child.ref.remove();
+        console.log(
+            "Removing old match:",
+            match.gameId
+        );
 
-            }
+        child.ref.remove();
 
-        });
+    }
+
+});
 
         console.log(
             "Old competitions & matches removed."
