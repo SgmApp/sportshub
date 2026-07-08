@@ -556,7 +556,7 @@ await db.ref("workflow").set({
 
     console.error(e);
 
-    }
+}
 
 }
 
