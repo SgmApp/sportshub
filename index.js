@@ -527,9 +527,9 @@ if (!found) {
 
 await Promise.all(removeCompetitionTasks);
 
-addLog("Old competitions removed.");
+await addLog("Old competitions removed.");
 
-addLog("===== Firebase Sync Completed =====");
+await addLog("===== Firebase Sync Completed =====");
 
 await db.ref("workflow").set({
 
