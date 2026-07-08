@@ -541,19 +541,11 @@ if (!found) {
 
 await Promise.all(removeCompetitionTasks);
 
- addLog("Old competitions removed.");
+addLog("Old competitions removed.");
 
-addLog("===== Firebase Sync Completed =====");
+addLog("===== Sports Hub Sync Completed =====");
 
-await db.ref("workflow").set({
-
-    status: "completed",
-
-    updatedAt: Date.now(),
-
-    log: workflowLog
-
-});
+await updateWorkflow("completed");
 
 } catch (e) {
 
