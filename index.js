@@ -99,8 +99,8 @@ async function loadMatches() {
             formatDate(tomorrow)
         );
 
-   await addLog("Parser : " + apiParser);
-    await addLog("API : " + apiUrl);
+    addLog("Parser : " + apiParser);
+    addLog("API : " + apiUrl);
 
     if (!apiUrl) {
 
@@ -300,7 +300,7 @@ oldMatchesSnap.forEach(function (child) {
         )
     ) {
 
-       await addLog(
+        addLog(
     "Removing old competition match : " +
     match.gameId
 );
@@ -472,7 +472,7 @@ allMatches.forEach(function (child) {
 
 if (!found) {
 
-   await addLog(
+    addLog(
         "Removing old match : " +
         gameId
     );
@@ -510,7 +510,7 @@ allCompetitions.forEach(function (child) {
 
 if (!found) {
 
-   await addLog(
+    addLog(
         "Removing old competition : " +
         child.key
     );
