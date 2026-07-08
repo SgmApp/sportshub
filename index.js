@@ -179,6 +179,8 @@ const apiChanged =
 
 if (apiChanged) {
 
+    addLog("API changed. Clearing old matches and competitions.");
+
     await db.ref("matches").remove();
 
     await db.ref("competitions").remove();
@@ -543,6 +545,8 @@ await db.ref("workflow").set({
 
     addLog("Sync Error : " + e.toString());
 
+    addLog(e.stack || "");
+
     await db.ref("workflow").set({
 
         status: "failed",
@@ -555,7 +559,7 @@ await db.ref("workflow").set({
 
     console.error(e);
 
-}
+    }
 
 }
 
