@@ -541,9 +541,9 @@ if (!found) {
 
 await Promise.all(removeCompetitionTasks);
 
-await addLog("Old competitions removed.");
+ addLog("Old competitions removed.");
 
-await addLog("===== Firebase Sync Completed =====");
+addLog("===== Firebase Sync Completed =====");
 
 await db.ref("workflow").set({
 
@@ -557,23 +557,14 @@ await db.ref("workflow").set({
 
 } catch (e) {
 
-   await addLog("Sync Error : " + e.toString());
+    addLog("Sync Error : " + e.toString());
+    addLog(e.stack || "");
 
-   await addLog(e.stack || "");
-
-    await db.ref("workflow").set({
-
-        status: "failed",
-
-        updatedAt: Date.now(),
-
-        log: workflowLog
-
-    });
+    await updateWorkflow("failed");
 
     console.error(e);
 
-    }
+}
 
 }
 
