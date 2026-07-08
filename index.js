@@ -540,6 +540,10 @@ if (!found) {
 
 });
 
+    }
+
+});
+
 await Promise.all(removeCompetitionTasks);
 
 addLog("Old competitions removed.");
