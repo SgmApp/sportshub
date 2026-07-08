@@ -23,6 +23,20 @@ function addLog(text) {
 
 }
 
+async function updateWorkflow(status) {
+
+    await db.ref("workflow").set({
+
+        status: status,
+
+        updatedAt: Date.now(),
+
+        log: workflowLog
+
+    });
+
+}
+
 // ---------------- SETTINGS ----------------
 
 async function getSettings() {
