@@ -479,11 +479,11 @@ allMatches.forEach(function (child) {
 if (!found) {
 
     addLog(
-        "Removing old competition : " +
-        child.key
+        "Removing old match : " +
+        gameId
     );
 
-    removeCompetitionTasks.push(
+    removeMatchTasks.push(
         child.ref.remove()
     );
 
@@ -514,18 +514,18 @@ allCompetitions.forEach(function (child) {
 
     }
 
-    if (!found) {
+if (!found) {
 
     addLog(
-        "Removing old match : " +
-        gameId
+        "Removing old competition : " +
+        child.key
     );
 
-    removeMatchTasks.push(
+    removeCompetitionTasks.push(
         child.ref.remove()
     );
 
-    }
+
 
     }
 
