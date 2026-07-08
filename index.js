@@ -99,8 +99,8 @@ async function loadMatches() {
             formatDate(tomorrow)
         );
 
-    addLog("Parser : " + apiParser);
-    addLog("API : " + apiUrl);
+   await addLog("Parser : " + apiParser);
+    await addLog("API : " + apiUrl);
 
     if (!apiUrl) {
 
@@ -156,7 +156,7 @@ async function syncMatches() {
 
     try {
 
-    addLog("===== Sports Hub Sync Started =====");
+  await addLog("===== Sports Hub Sync Started =====");
 
     const data = await loadMatches();
 
@@ -179,7 +179,7 @@ const apiChanged =
 
 if (apiChanged) {
 
-    addLog("API changed. Clearing old matches and competitions.");
+    await addLog("API changed. Clearing old matches and competitions.");
 
     await db.ref("matches").remove();
 
@@ -206,9 +206,9 @@ if (apiChanged) {
         const tomorrow =
             data.tomorrow;
 
-        addLog("Competitions : " + competitions.length);
+       await addLog("Competitions : " + competitions.length);
 
-        addLog("Games : " + games.length);
+       await addLog("Games : " + games.length);
 
         // Save competitions
 
@@ -240,7 +240,7 @@ if (apiChanged) {
 
         }
 
-        addLog("Competition list updated.");
+       await addLog("Competition list updated.");
 
         // Read selected competitions
 
@@ -268,7 +268,7 @@ if (apiChanged) {
 
         });
 
-        addLog(
+      await addLog(
     "Selected competitions : " +
     allowedCompetitions.length
 );
@@ -300,7 +300,7 @@ oldMatchesSnap.forEach(function (child) {
         )
     ) {
 
-        addLog(
+       await addLog(
     "Removing old competition match : " +
     match.gameId
 );
@@ -335,7 +335,7 @@ await Promise.all(removeTasks);
 
             }
 
-            addLog(
+           await addLog(
     "Processing : " +
     game.home +
     " vs " +
@@ -419,7 +419,7 @@ await Promise.all(removeTasks);
                 .child(String(game.gameId))
                 .set(matchData);
 
-            addLog(
+           await addLog(
     "Updated : " +
     game.gameId
 );
@@ -472,7 +472,7 @@ allMatches.forEach(function (child) {
 
 if (!found) {
 
-    addLog(
+   await addLog(
         "Removing old match : " +
         gameId
     );
@@ -510,7 +510,7 @@ allCompetitions.forEach(function (child) {
 
 if (!found) {
 
-    addLog(
+   await addLog(
         "Removing old competition : " +
         child.key
     );
@@ -543,9 +543,9 @@ await db.ref("workflow").set({
 
 } catch (e) {
 
-    addLog("Sync Error : " + e.toString());
+   await addLog("Sync Error : " + e.toString());
 
-    addLog(e.stack || "");
+   await addLog(e.stack || "");
 
     await db.ref("workflow").set({
 
