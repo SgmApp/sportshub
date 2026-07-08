@@ -171,6 +171,7 @@ async function syncMatches() {
     try {
 
    addLog("===== Sports Hub Sync Started =====");
+        await updateWorkflow("running");
 
     const data = await loadMatches();
 
