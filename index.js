@@ -540,9 +540,6 @@ if (!found) {
 
 });
 
-    }
-
-});
 
 await Promise.all(removeCompetitionTasks);
 
