@@ -516,9 +516,16 @@ allCompetitions.forEach(function (child) {
 
     if (!found) {
 
-        removeCompetitionTasks.push(
-            child.ref.remove()
-        );
+    addLog(
+        "Removing old match : " +
+        gameId
+    );
+
+    removeMatchTasks.push(
+        child.ref.remove()
+    );
+
+    }
 
     }
 
