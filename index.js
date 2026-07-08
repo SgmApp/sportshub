@@ -13,6 +13,15 @@ admin.initializeApp({
 });
 
 const db = admin.database();
+let workflowLog = "";
+
+function addLog(text) {
+
+    console.log(text);
+
+    workflowLog += text + "\n";
+
+}
 
 // ---------------- SETTINGS ----------------
 
@@ -147,9 +156,9 @@ async function syncMatches() {
 
     try {
 
-        console.log("===== Sports Hub Sync Started =====");
+    addLog("===== Sports Hub Sync Started =====");
 
-        const data = await loadMatches();
+    const data = await loadMatches();
 
 const settings = await getSettings();
 
@@ -517,22 +526,37 @@ allCompetitions.forEach(function (child) {
 
 await Promise.all(removeCompetitionTasks);
 
-console.log(
-    "Old competitions removed."
-);
+addLog("Old competitions removed.");
 
-console.log(
-    "===== Firebase Sync Completed ====="
-);
+addLog("===== Firebase Sync Completed =====");
+
+await db.ref("workflow").set({
+
+    status: "completed",
+
+    updatedAt: Date.now(),
+
+    log: workflowLog
+
+});
 
 } catch (e) {
 
-    console.error(
-        "Sync Error :",
-        e
-    );
+    addLog("Sync Error : " + e.toString());
 
-}
+    await db.ref("workflow").set({
+
+        status: "failed",
+
+        updatedAt: Date.now(),
+
+        log: workflowLog
+
+    });
+
+    console.error(e);
+
+    }
 
 }
 
