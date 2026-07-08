@@ -3,30 +3,45 @@ module.exports = function (data) {
     const competitions = [];
     const games = [];
 
+    const timezone =
+        process.env.TIMEZONE || "Asia/Kolkata";
+
+
+    // Competitions
+
     (data.competitions || []).forEach(function (c) {
 
         competitions.push({
 
             id: c.id,
 
-            name: c.name
+            name: c.name || ""
 
         });
 
     });
 
+
+    // Games
+
     (data.games || []).forEach(function (g) {
 
+
         const start = new Date(g.startTime);
+
 
         // Status
 
         let status = g.statusText || "";
         let shortStatus = g.shortStatusText || "";
+
         let adapterStatus = "";
+
 
         const s = status.toLowerCase();
         const ss = shortStatus.toUpperCase();
+
+
 
         if (
             s.includes("ended") ||
@@ -35,17 +50,21 @@ module.exports = function (data) {
 
             adapterStatus = "FT";
 
+
         } else if (
             s.includes("penalties")
         ) {
 
             adapterStatus = "AP";
 
+
         } else if (
-            s.includes("scheduled")
+            s.includes("scheduled") ||
+            s.includes("not started")
         ) {
 
             adapterStatus = "Scheduled";
+
 
         } else if (
             s.includes("postponed")
@@ -53,17 +72,21 @@ module.exports = function (data) {
 
             adapterStatus = "Postponed";
 
+
         } else if (
-            s.includes("cancelled")
+            s.includes("cancelled") ||
+            s.includes("canceled")
         ) {
 
             adapterStatus = "Cancelled";
+
 
         } else if (
             s.includes("abandoned")
         ) {
 
             adapterStatus = "Abandoned";
+
 
         } else {
 
@@ -78,9 +101,12 @@ module.exports = function (data) {
 
         }
 
+
+
         // Score
 
         let score = "VS";
+
 
         if (
             adapterStatus !== "Scheduled" &&
@@ -89,10 +115,17 @@ module.exports = function (data) {
             adapterStatus !== "Abandoned"
         ) {
 
+
             score =
-                (g.homeCompetitor?.score ?? 0) +
-                " - " +
+                (g.homeCompetitor?.score ?? 0)
+                +
+                " - "
+                +
                 (g.awayCompetitor?.score ?? 0);
+
+
+
+            // Penalty score
 
             if (
                 adapterStatus === "AP" &&
@@ -100,68 +133,123 @@ module.exports = function (data) {
                 g.awayCompetitor?.penaltyScore != null
             ) {
 
+
                 score +=
-                    " (P " +
-                    g.homeCompetitor.penaltyScore +
-                    "-" +
-                    g.awayCompetitor.penaltyScore +
+                    " (P "
+                    +
+                    g.homeCompetitor.penaltyScore
+                    +
+                    "-"
+                    +
+                    g.awayCompetitor.penaltyScore
+                    +
                     ")";
 
             }
 
         }
 
+
+
         games.push({
 
-            gameId: g.id,
 
-            competitionId: g.competitionId,
+            gameId: g.id || "",
 
-            league: g.competitionDisplayName || "",
 
-            home: g.homeCompetitor?.name || "",
+            competitionId:
+                g.competitionId || "",
 
-            away: g.awayCompetitor?.name || "",
+
+            league:
+                g.competitionDisplayName ||
+                g.competition?.name ||
+                "",
+
+
+            home:
+                g.homeCompetitor?.name || "",
+
+
+            away:
+                g.awayCompetitor?.name || "",
+
+
 
             score: score,
 
+
             status: adapterStatus,
 
-            shortStatus: shortStatus,
 
-            streamUrl: g.streamUrl || "",
+            shortStatus:
+                shortStatus,
 
-            stadium: g.venue?.name || "",
+
+
+            streamUrl:
+                g.streamUrl || "",
+
+
+
+            stadium:
+                g.venue?.name || "",
+
+
 
             date:
-                start
-                    .toLocaleDateString("en-GB")
-                    .replace(/\//g, "-"),
+
+                start.toLocaleDateString(
+                    "en-GB",
+                    {
+                        timeZone: timezone
+                    }
+                )
+                .replace(/\//g, "-"),
+
+
 
             time:
+
                 start.toLocaleTimeString(
                     "en-US",
                     {
+                        timeZone: timezone,
                         hour: "2-digit",
                         minute: "2-digit",
                         hour12: true
                     }
                 ),
 
+
+
             matchTimeMillis:
                 start.getTime(),
 
+
+
             homeLogo:
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+
+                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/"
+                +
                 (g.homeCompetitor?.id || ""),
 
+
+
             awayLogo:
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+
+                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/"
+                +
                 (g.awayCompetitor?.id || "")
+
+
 
         });
 
+
     });
+
+
 
     return {
 
