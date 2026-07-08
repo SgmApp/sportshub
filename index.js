@@ -99,8 +99,8 @@ async function loadMatches() {
             formatDate(tomorrow)
         );
 
-    console.log("Parser :", apiParser);
-    console.log("API :", apiUrl);
+    addLog("Parser : " + apiParser);
+    addLog("API : " + apiUrl);
 
     if (!apiUrl) {
 
@@ -204,15 +204,9 @@ if (apiChanged) {
         const tomorrow =
             data.tomorrow;
 
-        console.log(
-            "Competitions :",
-            competitions.length
-        );
+        addLog("Competitions : " + competitions.length);
 
-        console.log(
-            "Games :",
-            games.length
-        );
+        addLog("Games : " + games.length);
 
         // Save competitions
 
@@ -244,9 +238,7 @@ if (apiChanged) {
 
         }
 
-        console.log(
-            "Competition list updated."
-        );
+        addLog("Competition list updated.");
 
         // Read selected competitions
 
@@ -274,10 +266,10 @@ if (apiChanged) {
 
         });
 
-        console.log(
-            "Selected competitions :",
-            allowedCompetitions.length
-        );
+        addLog(
+    "Selected competitions : " +
+    allowedCompetitions.length
+);
 
         const matchesRef =
     db.ref("matches");
@@ -306,10 +298,10 @@ oldMatchesSnap.forEach(function (child) {
         )
     ) {
 
-        console.log(
-            "Removing old competition match:",
-            match.gameId
-        );
+        addLog(
+    "Removing old competition match : " +
+    match.gameId
+);
 
         removeTasks.push(
             child.ref.remove()
@@ -341,12 +333,12 @@ await Promise.all(removeTasks);
 
             }
 
-            console.log(
-                "Processing :",
-                game.home,
-                "vs",
-                game.away
-            );
+            addLog(
+    "Processing : " +
+    game.home +
+    " vs " +
+    game.away
+);
             const matchData = {
 
                 gameId:
@@ -425,10 +417,10 @@ await Promise.all(removeTasks);
                 .child(String(game.gameId))
                 .set(matchData);
 
-            console.log(
-                "Updated:",
-                game.gameId
-            );
+            addLog(
+    "Updated : " +
+    game.gameId
+);
 
         }
 
