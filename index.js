@@ -209,15 +209,29 @@ if (apiChanged) {
 
         for (const c of competitions) {
 
-            await db.ref("competitions")
-                .child(String(c.id))
-                .update({
+    const compRef = db.ref("competitions")
+        .child(String(c.id));
 
-                    id: c.id,
+    const oldSnap = await compRef.once("value");
 
-                    name: c.name
+    let selected = false;
 
-                });
+    if (
+        oldSnap.exists() &&
+        oldSnap.child("selected").exists()
+    ) {
+        selected = oldSnap.child("selected").val();
+    }
+
+    await compRef.set({
+
+        id: c.id,
+
+        name: c.name,
+
+        selected: selected
+
+    });
 
         }
 
