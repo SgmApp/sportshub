@@ -476,18 +476,18 @@ allMatches.forEach(function (child) {
 
     }
 
-    if (!found) {
+if (!found) {
 
-        console.log(
-            "Removing old match:",
-            gameId
-        );
+    addLog(
+        "Removing old competition : " +
+        child.key
+    );
 
-        removeMatchTasks.push(
-            child.ref.remove()
-        );
+    removeCompetitionTasks.push(
+        child.ref.remove()
+    );
 
-    }
+}
 
 });
 
