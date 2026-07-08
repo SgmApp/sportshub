@@ -1,262 +1,174 @@
 module.exports = function (data) {
 
-    const competitions = [];
-    const games = [];
+const competitions = [];  
+const games = [];  
 
-    const timezone =
-        process.env.TIMEZONE || "Asia/Kolkata";
+(data.competitions || []).forEach(function (c) {  
 
+    competitions.push({  
 
-    // Competitions
+        id: c.id,  
 
-    (data.competitions || []).forEach(function (c) {
+        name: c.name  
 
-        competitions.push({
+    });  
 
-            id: c.id,
+});  
 
-            name: c.name || ""
+(data.games || []).forEach(function (g) {  
 
-        });
+    const start = new Date(g.startTime);  
 
-    });
+    // Status  
 
+    let status = g.statusText || "";  
+    let shortStatus = g.shortStatusText || "";  
+    let adapterStatus = "";  
 
-    // Games
+    const s = status.toLowerCase();  
+    const ss = shortStatus.toUpperCase();  
 
-    (data.games || []).forEach(function (g) {
+    if (  
+        s.includes("ended") ||  
+        s.includes("finished")  
+    ) {  
 
+        adapterStatus = "FT";  
 
-        const start = new Date(g.startTime);
+    } else if (  
+        s.includes("penalties")  
+    ) {  
 
+        adapterStatus = "AP";  
 
-        // Status
+    } else if (  
+        s.includes("scheduled")  
+    ) {  
 
-        let status = g.statusText || "";
-        let shortStatus = g.shortStatusText || "";
+        adapterStatus = "Scheduled";  
 
-        let adapterStatus = "";
+    } else if (  
+        s.includes("postponed")  
+    ) {  
 
+        adapterStatus = "Postponed";  
 
-        const s = status.toLowerCase();
-        const ss = shortStatus.toUpperCase();
+    } else if (  
+        s.includes("cancelled")  
+    ) {  
 
+        adapterStatus = "Cancelled";  
 
+    } else if (  
+        s.includes("abandoned")  
+    ) {  
 
-        if (
-            s.includes("ended") ||
-            s.includes("finished")
-        ) {
+        adapterStatus = "Abandoned";  
 
-            adapterStatus = "FT";
+    } else {  
 
+        adapterStatus =  
+            ss.includes("'") ||  
+            ss === "HT" ||  
+            ss === "LIVE" ||  
+            ss === "ET" ||  
+            ss.includes("+")  
+                ? shortStatus  
+                : "LIVE";  
 
-        } else if (
-            s.includes("penalties")
-        ) {
+    }  
 
-            adapterStatus = "AP";
+    // Score  
 
+    let score = "VS";  
 
-        } else if (
-            s.includes("scheduled") ||
-            s.includes("not started")
-        ) {
+    if (  
+        adapterStatus !== "Scheduled" &&  
+        adapterStatus !== "Postponed" &&  
+        adapterStatus !== "Cancelled" &&  
+        adapterStatus !== "Abandoned"  
+    ) {  
 
-            adapterStatus = "Scheduled";
+        score =  
+            (g.homeCompetitor?.score ?? 0) +  
+            " - " +  
+            (g.awayCompetitor?.score ?? 0);  
 
+        if (  
+            adapterStatus === "AP" &&  
+            g.homeCompetitor?.penaltyScore != null &&  
+            g.awayCompetitor?.penaltyScore != null  
+        ) {  
 
-        } else if (
-            s.includes("postponed")
-        ) {
+            score +=  
+                " (P " +  
+                g.homeCompetitor.penaltyScore +  
+                "-" +  
+                g.awayCompetitor.penaltyScore +  
+                ")";  
 
-            adapterStatus = "Postponed";
+        }  
 
+    }  
 
-        } else if (
-            s.includes("cancelled") ||
-            s.includes("canceled")
-        ) {
+    games.push({  
 
-            adapterStatus = "Cancelled";
+        gameId: g.id,  
 
+        competitionId: g.competitionId,  
 
-        } else if (
-            s.includes("abandoned")
-        ) {
+        league: g.competitionDisplayName || "",  
 
-            adapterStatus = "Abandoned";
+        home: g.homeCompetitor?.name || "",  
 
+        away: g.awayCompetitor?.name || "",  
 
-        } else {
+        score: score,  
 
-            adapterStatus =
-                ss.includes("'") ||
-                ss === "HT" ||
-                ss === "LIVE" ||
-                ss === "ET" ||
-                ss.includes("+")
-                    ? shortStatus
-                    : "LIVE";
+        status: adapterStatus,  
 
-        }
+        shortStatus: shortStatus,  
 
+        streamUrl: g.streamUrl || "",  
 
+        stadium: g.venue?.name || "",  
 
-        // Score
+        date:  
+            start  
+                .toLocaleDateString("en-GB")  
+                .replace(/\//g, "-"),  
 
-        let score = "VS";
+        time:  
+            start.toLocaleTimeString(  
+                "en-US",  
+                {  
+                    hour: "2-digit",  
+                    minute: "2-digit",  
+                    hour12: true  
+                }  
+            ),  
 
+        matchTimeMillis:  
+            start.getTime(),  
 
-        if (
-            adapterStatus !== "Scheduled" &&
-            adapterStatus !== "Postponed" &&
-            adapterStatus !== "Cancelled" &&
-            adapterStatus !== "Abandoned"
-        ) {
+        homeLogo:  
+            "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +  
+            (g.homeCompetitor?.id || ""),  
 
+        awayLogo:  
+            "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +  
+            (g.awayCompetitor?.id || "")  
 
-            score =
-                (g.homeCompetitor?.score ?? 0)
-                +
-                " - "
-                +
-                (g.awayCompetitor?.score ?? 0);
+    });  
 
+});  
 
+return {  
 
-            // Penalty score
+    competitions,  
 
-            if (
-                adapterStatus === "AP" &&
-                g.homeCompetitor?.penaltyScore != null &&
-                g.awayCompetitor?.penaltyScore != null
-            ) {
+    games  
 
-
-                score +=
-                    " (P "
-                    +
-                    g.homeCompetitor.penaltyScore
-                    +
-                    "-"
-                    +
-                    g.awayCompetitor.penaltyScore
-                    +
-                    ")";
-
-            }
-
-        }
-
-
-
-        games.push({
-
-
-            gameId: g.id || "",
-
-
-            competitionId:
-                g.competitionId || "",
-
-
-            league:
-                g.competitionDisplayName ||
-                g.competition?.name ||
-                "",
-
-
-            home:
-                g.homeCompetitor?.name || "",
-
-
-            away:
-                g.awayCompetitor?.name || "",
-
-
-
-            score: score,
-
-
-            status: adapterStatus,
-
-
-            shortStatus:
-                shortStatus,
-
-
-
-            streamUrl:
-                g.streamUrl || "",
-
-
-
-            stadium:
-                g.venue?.name || "",
-
-
-
-            date:
-
-                start.toLocaleDateString(
-                    "en-GB",
-                    {
-                        timeZone: timezone
-                    }
-                )
-                .replace(/\//g, "-"),
-
-
-
-            time:
-
-                start.toLocaleTimeString(
-                    "en-US",
-                    {
-                        timeZone: timezone,
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true
-                    }
-                ),
-
-
-
-            matchTimeMillis:
-                start.getTime(),
-
-
-
-            homeLogo:
-
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/"
-                +
-                (g.homeCompetitor?.id || ""),
-
-
-
-            awayLogo:
-
-                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/"
-                +
-                (g.awayCompetitor?.id || "")
-
-
-
-        });
-
-
-    });
-
-
-
-    return {
-
-        competitions,
-
-        games
-
-    };
+};
 
 };
