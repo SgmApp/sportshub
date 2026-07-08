@@ -156,7 +156,7 @@ async function syncMatches() {
 
     try {
 
-  await addLog("===== Sports Hub Sync Started =====");
+   addLog("===== Sports Hub Sync Started =====");
 
     const data = await loadMatches();
 
@@ -179,7 +179,7 @@ const apiChanged =
 
 if (apiChanged) {
 
-    await addLog("API changed. Clearing old matches and competitions.");
+     addLog("API changed. Clearing old matches and competitions.");
 
     await db.ref("matches").remove();
 
@@ -206,9 +206,9 @@ if (apiChanged) {
         const tomorrow =
             data.tomorrow;
 
-       await addLog("Competitions : " + competitions.length);
+        addLog("Competitions : " + competitions.length);
 
-       await addLog("Games : " + games.length);
+        addLog("Games : " + games.length);
 
         // Save competitions
 
@@ -240,7 +240,7 @@ if (apiChanged) {
 
         }
 
-       await addLog("Competition list updated.");
+        addLog("Competition list updated.");
 
         // Read selected competitions
 
@@ -268,7 +268,7 @@ if (apiChanged) {
 
         });
 
-      await addLog(
+       addLog(
     "Selected competitions : " +
     allowedCompetitions.length
 );
@@ -335,7 +335,7 @@ await Promise.all(removeTasks);
 
             }
 
-           await addLog(
+            addLog(
     "Processing : " +
     game.home +
     " vs " +
@@ -419,7 +419,7 @@ await Promise.all(removeTasks);
                 .child(String(game.gameId))
                 .set(matchData);
 
-           await addLog(
+            addLog(
     "Updated : " +
     game.gameId
 );
