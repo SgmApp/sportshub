@@ -1,174 +1,211 @@
 module.exports = function (data) {
 
-const competitions = [];  
-const games = [];  
+    const competitions = [];
+    const games = [];
 
-(data.competitions || []).forEach(function (c) {  
+    (data.competitions || []).forEach(function (c) {
 
-    competitions.push({  
+        competitions.push({
+            id: c.id,
+            name: c.name
+        });
 
-        id: c.id,  
+    });
 
-        name: c.name  
+    (data.games || []).forEach(function (g) {
 
-    });  
+        const start = new Date(g.startTime);
 
-});  
+        // ---------------- Status ----------------
 
-(data.games || []).forEach(function (g) {  
+        let status = g.statusText || "";
+        let shortStatus = g.shortStatusText || "";
+        let adapterStatus = "";
 
-    const start = new Date(g.startTime);  
+        const s = status.toLowerCase();
+        const ss = shortStatus.toUpperCase();
 
-    // Status  
+        if (
+            s.includes("ended") ||
+            s.includes("finished")
+        ) {
 
-    let status = g.statusText || "";  
-    let shortStatus = g.shortStatusText || "";  
-    let adapterStatus = "";  
+            adapterStatus = "FT";
 
-    const s = status.toLowerCase();  
-    const ss = shortStatus.toUpperCase();  
+        } else if (
+            s.includes("penalties")
+        ) {
 
-    if (  
-        s.includes("ended") ||  
-        s.includes("finished")  
-    ) {  
+            adapterStatus = "AP";
 
-        adapterStatus = "FT";  
+        } else if (
+            s.includes("scheduled")
+        ) {
 
-    } else if (  
-        s.includes("penalties")  
-    ) {  
+            adapterStatus = "Scheduled";
 
-        adapterStatus = "AP";  
+        } else if (
+            s.includes("postponed")
+        ) {
 
-    } else if (  
-        s.includes("scheduled")  
-    ) {  
+            adapterStatus = "Postponed";
 
-        adapterStatus = "Scheduled";  
+        } else if (
+            s.includes("cancelled")
+        ) {
 
-    } else if (  
-        s.includes("postponed")  
-    ) {  
+            adapterStatus = "Cancelled";
 
-        adapterStatus = "Postponed";  
+        } else if (
+            s.includes("abandoned")
+        ) {
 
-    } else if (  
-        s.includes("cancelled")  
-    ) {  
+            adapterStatus = "Abandoned";
 
-        adapterStatus = "Cancelled";  
+        } else {
 
-    } else if (  
-        s.includes("abandoned")  
-    ) {  
+            adapterStatus =
+                ss.includes("'") ||
+                ss === "HT" ||
+                ss === "LIVE" ||
+                ss === "ET" ||
+                ss.includes("+")
+                ? shortStatus
+                : "LIVE";
 
-        adapterStatus = "Abandoned";  
+        }
 
-    } else {  
+        // ---------------- Score ----------------
 
-        adapterStatus =  
-            ss.includes("'") ||  
-            ss === "HT" ||  
-            ss === "LIVE" ||  
-            ss === "ET" ||  
-            ss.includes("+")  
-                ? shortStatus  
-                : "LIVE";  
+        let score = "VS";
 
-    }  
+        if (
+            adapterStatus !== "Scheduled" &&
+            adapterStatus !== "Postponed" &&
+            adapterStatus !== "Cancelled" &&
+            adapterStatus !== "Abandoned"
+        ) {
 
-    // Score  
+            score =
+                (g.homeCompetitor?.score ?? 0) +
+                " - " +
+                (g.awayCompetitor?.score ?? 0);
 
-    let score = "VS";  
+            if (
+                adapterStatus === "AP" &&
+                g.homeCompetitor?.penaltyScore != null &&
+                g.awayCompetitor?.penaltyScore != null
+            ) {
 
-    if (  
-        adapterStatus !== "Scheduled" &&  
-        adapterStatus !== "Postponed" &&  
-        adapterStatus !== "Cancelled" &&  
-        adapterStatus !== "Abandoned"  
-    ) {  
+                score +=
+                    " (P " +
+                    g.homeCompetitor.penaltyScore +
+                    "-" +
+                    g.awayCompetitor.penaltyScore +
+                    ")";
 
-        score =  
-            (g.homeCompetitor?.score ?? 0) +  
-            " - " +  
-            (g.awayCompetitor?.score ?? 0);  
+            }
 
-        if (  
-            adapterStatus === "AP" &&  
-            g.homeCompetitor?.penaltyScore != null &&  
-            g.awayCompetitor?.penaltyScore != null  
-        ) {  
+        }
 
-            score +=  
-                " (P " +  
-                g.homeCompetitor.penaltyScore +  
-                "-" +  
-                g.awayCompetitor.penaltyScore +  
-                ")";  
+        // ---------------- Goal Events ----------------
 
-        }  
+        const goalEvents = [];
 
-    }  
+        (g.events || []).forEach(function (ev) {
 
-    games.push({  
+            const type = (ev.type || "").toLowerCase();
 
-        gameId: g.id,  
+            if (
+                type !== "goal" &&
+                type !== "owngoal" &&
+                type !== "penaltygoal"
+            ) {
+                return;
+            }
 
-        competitionId: g.competitionId,  
+            goalEvents.push({
 
-        league: g.competitionDisplayName || "",  
+                playerId: ev.playerId || 0,
 
-        home: g.homeCompetitor?.name || "",  
+                // API-ൽ ഉണ്ടെങ്കിൽ നേരിട്ട് save ചെയ്യും
+                playerName: ev.playerName || "",
 
-        away: g.awayCompetitor?.name || "",  
+                competitorNum: ev.competitorNum || 0,
 
-        score: score,  
+                gameTime:
+                    ev.gameTime ||
+                    ev.minute ||
+                    "",
 
-        status: adapterStatus,  
+                type: ev.type || "goal"
 
-        shortStatus: shortStatus,  
+            });
 
-        streamUrl: g.streamUrl || "",  
+        });
 
-        stadium: g.venue?.name || "",  
+        // ---------------- Save ----------------
 
-        date:  
-            start  
-                .toLocaleDateString("en-GB")  
-                .replace(/\//g, "-"),  
+        games.push({
 
-        time:  
-            start.toLocaleTimeString(  
-                "en-US",  
-                {  
-                    hour: "2-digit",  
-                    minute: "2-digit",  
-                    hour12: true  
-                }  
-            ),  
+            gameId: g.id,
 
-        matchTimeMillis:  
-            start.getTime(),  
+            competitionId: g.competitionId,
 
-        homeLogo:  
-            "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +  
-            (g.homeCompetitor?.id || ""),  
+            league: g.competitionDisplayName || "",
 
-        awayLogo:  
-            "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +  
-            (g.awayCompetitor?.id || "")  
+            home: g.homeCompetitor?.name || "",
 
-    });  
+            away: g.awayCompetitor?.name || "",
 
-});  
+            score: score,
 
-return {  
+            status: adapterStatus,
 
-    competitions,  
+            shortStatus: shortStatus,
 
-    games  
+            streamUrl: g.streamUrl || "",
 
-};
+            stadium: g.venue?.name || "",
+
+            date:
+                start
+                .toLocaleDateString("en-GB")
+                .replace(/\//g, "-"),
+
+            time:
+                start.toLocaleTimeString(
+                    "en-US",
+                    {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true
+                    }
+                ),
+
+            matchTimeMillis:
+                start.getTime(),
+
+            homeLogo:
+                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+                (g.homeCompetitor?.id || ""),
+
+            awayLogo:
+                "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+                (g.awayCompetitor?.id || ""),
+
+            goalEvents: goalEvents
+
+        });
+
+    });
+
+    return {
+
+        competitions,
+
+        games
+
+    };
 
 };
