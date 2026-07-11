@@ -441,15 +441,13 @@ await Promise.all(removeTasks);
 
         }
 
-        
-
-        // Remove old matches
+        // Remove matches older than yesterday
 
 const allMatches = await matchesRef.once("value");
 
 const removeMatchTasks = [];
 
-// ഇന്നലെ 00:00 മുതൽ സൂക്ഷിക്കുക
+// ഇന്നലെ 00:00 മുതൽ മാത്രം സൂക്ഷിക്കുക
 const keepFrom = new Date();
 keepFrom.setHours(0, 0, 0, 0);
 keepFrom.setDate(keepFrom.getDate() - 1);
@@ -461,22 +459,19 @@ allMatches.forEach(function (child) {
     if (!match || !match.matchTimeMillis)
         return;
 
-    // ഇന്നലെക്ക് മുമ്പുള്ള match മാത്രം delete ചെയ്യുക
     if (match.matchTimeMillis < keepFrom.getTime()) {
 
-        addLog(
-            "Removing expired match : " +
-            match.gameId
-        );
+        addLog("Removing expired match : " + match.gameId);
 
-        removeMatchTasks.push(
-            child.ref.remove()
-        );
+        removeMatchTasks.push(child.ref.remove());
+
     }
 
 });
 
 await Promise.all(removeMatchTasks);
+
+        
 // Remove old competitions
 
 const allCompetitions =
