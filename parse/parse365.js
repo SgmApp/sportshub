@@ -16,83 +16,103 @@ module.exports = function (data) {
 
         const start = new Date(g.startTime);
 
+    
+
         // ---------------- Status ----------------
 
-        let status = g.statusText || "";
+let status = g.statusText || "";
 let shortStatus = g.shortStatusText || "";
 let adapterStatus = "";
 
 const s = status.toLowerCase();
 const ss = shortStatus.toUpperCase();
 
+// After Extra Time
 if (
-    s.includes("ended") ||
-    s.includes("finished")
-) {
-
-    adapterStatus = "FT";
-
-} else if (
     s.includes("after et") ||
-    s.includes("after extra time")
+    s.includes("after extra time") ||
+    ss === "AFTER ET" ||
+    ss === "AET"
 ) {
 
     adapterStatus = "AET";
 
+// Full Time
 } else if (
-    s.includes("extra time")
+    s.includes("ended") ||
+    s.includes("finished") ||
+    ss === "ENDED" ||
+    ss === "FT"
+) {
+
+    adapterStatus = "FT";
+
+// Extra Time
+} else if (
+    s.includes("extra time") ||
+    ss === "ET"
 ) {
 
     adapterStatus = "ET";
 
+// Penalties
 } else if (
-    s.includes("penalties")
+    s.includes("penalties") ||
+    ss === "AP"
 ) {
 
     adapterStatus = "AP";
 
+// Scheduled
 } else if (
-    s.includes("scheduled")
+    s.includes("scheduled") ||
+    s.includes("not started") ||
+    ss === "NS"
 ) {
 
     adapterStatus = "Scheduled";
 
+// Postponed
 } else if (
     s.includes("postponed")
 ) {
 
     adapterStatus = "Postponed";
 
+// Cancelled
 } else if (
     s.includes("cancelled")
 ) {
 
     adapterStatus = "Cancelled";
 
+// Abandoned
 } else if (
     s.includes("abandoned")
 ) {
 
     adapterStatus = "Abandoned";
 
+// Live Status
 } else if (
     ss.includes("'") ||
     ss.includes("+") ||
     ss === "HT" ||
-    ss === "LIVE" ||
-    ss === "ET" ||
-    ss === "AET" ||
-    ss === "FT"
+    ss === "LIVE"
 ) {
 
     adapterStatus = shortStatus;
 
+// Fallback
 } else {
 
-    adapterStatus = shortStatus || "LIVE";
+    adapterStatus = shortStatus;
+
+    if (!adapterStatus || adapterStatus.trim() === "") {
+        adapterStatus = "LIVE";
+    }
 
 }
-
         // ---------------- Score ----------------
 
         let score = "VS";
