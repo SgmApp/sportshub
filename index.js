@@ -370,17 +370,29 @@ await Promise.all(removeTasks);
 
 if (gameApiUrl && gameApiUrl.trim() !== "") {
 
-    const detailUrl = gameApiUrl.replace(
-        "{gameId}",
-        game.gameId
-    );
+    try {
 
-    const detailResponse = await axios.get(detailUrl);
+        const detailUrl = gameApiUrl.replace(
+            "{gameId}",
+            game.gameId
+        );
 
-detail = detailResponse.data;
+        const detailResponse = await axios.get(detailUrl);
 
-//addLog(JSON.stringify(detail));
-    addLog(JSON.stringify(detail, null, 2));
+        detail = detailResponse.data || {};
+
+    } catch (e) {
+
+        addLog(
+            "Game API Failed : " +
+            game.gameId +
+            " : " +
+            e.message
+        );
+
+        detail = {};
+
+    }
 
 }
             
@@ -435,7 +447,14 @@ detail = detailResponse.data;
 
             matchData.goalEvents = [];
 
-(detail.game?.events || []).forEach(function (ev) {
+const events =
+    (detail &&
+     detail.game &&
+     detail.game.events)
+        ? detail.game.events
+        : [];
+
+events.forEach(function (ev) {
 
     const type = (ev.type || "").toLowerCase();
 
