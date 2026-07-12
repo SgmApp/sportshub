@@ -479,6 +479,8 @@ matchData.goalEvents = [];
 
     if(ev.eventType && ev.eventType.id === 1){
 
+        
+
         matchData.goalEvents.push({
 
             playerId: ev.playerId || 0,
@@ -488,6 +490,8 @@ matchData.goalEvents = [];
             competitorId: ev.competitorId || 0,
 
             gameTime: ev.gameTimeDisplay || "",
+
+            competitorId: ev.competitorId || 0,
 
             type: ev.eventType.name || "Goal"
 
