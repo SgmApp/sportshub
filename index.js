@@ -443,7 +443,7 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
                     game.homeLogo,
 
                 awayLogo:
-                    game.awayLogo
+                    game.awayLogo,
                 homeCompetitorId:
         detail.game &&
         detail.game.homeCompetitor
