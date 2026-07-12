@@ -381,6 +381,8 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
         detail = detailResponse.data || {};
 
+        addLog(JSON.stringify(detail, null, 2));
+
     } catch (e) {
 
         addLog(
