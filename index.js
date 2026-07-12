@@ -375,6 +375,7 @@ await Promise.all(removeTasks);
             
 
 const detailResponse = await axios.get(detailUrl);
+            const detail = detailResponse.data;
             const matchData = {
 
                 gameId:
