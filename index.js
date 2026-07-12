@@ -341,26 +341,56 @@ await Promise.all(removeTasks);
 
         for (const game of games) {
 
-            const competitionId =
-                game.competitionId || 0;
+    const competitionId =
+        game.competitionId || 0;
 
-            if (
-                allowedCompetitions.length > 0 &&
-                !allowedCompetitions.includes(
-                    competitionId
-                )
-            ) {
+    if (
+        allowedCompetitions.length > 0 &&
+        !allowedCompetitions.includes(
+            competitionId
+        )
+    ) {
 
-                continue;
+        continue;
 
-            }
+    }
 
-            addLog(
-    "Processing : " +
-    game.home +
-    " vs " +
-    game.away
-);
+    addLog(
+        "Processing : " +
+        game.home +
+        " vs " +
+        game.away
+    );
+
+    // Game Details API
+    const detailUrl =
+        gameApiUrl.replace(
+            "{gameId}",
+            game.gameId
+        );
+
+    const detailResponse =
+        await axios.get(detailUrl);
+
+    const matchData = {
+
+        gameId:
+            game.gameId,
+
+        competitionId:
+            game.competitionId,
+
+        league:
+            game.league,
+
+        home:
+            game.home,
+
+        away:
+            game.away,
+
+        // ...
+    };
             
 
 const detailResponse = await axios.get(detailUrl);
