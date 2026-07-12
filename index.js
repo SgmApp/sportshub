@@ -444,8 +444,19 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
                 awayLogo:
                     game.awayLogo
+                homeCompetitorId:
+        detail.game &&
+        detail.game.homeCompetitor
+            ? detail.game.homeCompetitor.id
+            : 0,
 
-            };
+    awayCompetitorId:
+        detail.game &&
+        detail.game.awayCompetitor
+            ? detail.game.awayCompetitor.id
+            : 0
+
+};
 
             
 
