@@ -479,21 +479,19 @@ matchData.goalEvents = [];
 
     if(ev.eventType && ev.eventType.id === 1){
 
-        matchData.goalEvents.push({
+        const goalEvents = [];
 
-            playerId: ev.playerId || 0,
+(game.events || []).forEach(ev => {
 
-            playerName: playerMap[ev.playerId] || "",
+    if (ev.type !== "Goal") return;
 
-            competitorId: ev.competitorId || 0,
-
-            gameTime: ev.gameTimeDisplay || "",
-
-            type: ev.eventType.name || "Goal"
-
-        });
-
-    }
+    goalEvents.push({
+        playerId: ev.playerId,
+        playerName: ev.playerName,
+        gameTime: ev.gameTime,
+        type: ev.type,
+        competitorId: ev.competitorId
+    });
 
 });
 
