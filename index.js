@@ -365,17 +365,22 @@ await Promise.all(removeTasks);
     );
 
     // Game Details API
-    const detailUrl =
-        gameApiUrl.replace(
-            "{gameId}",
-            game.gameId
-        );
 
-    
+            let detail = {};
+
+if (gameApiUrl && gameApiUrl.trim() !== "") {
+
+    const detailUrl = gameApiUrl.replace(
+        "{gameId}",
+        game.gameId
+    );
+
+    const detailResponse = await axios.get(detailUrl);
+
+    detail = detailResponse.data;
+
+}
             
-
-const detailResponse = await axios.get(detailUrl);
-            const detail = detailResponse.data;
             const matchData = {
 
                 gameId:
