@@ -361,11 +361,7 @@ await Promise.all(removeTasks);
     " vs " +
     game.away
 );
-            const detailUrl =
-    gameApiUrl.replace(
-        "{gameId}",
-        game.gameId
-    );
+            
 
 const detailResponse = await axios.get(detailUrl);
             const matchData = {
