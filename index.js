@@ -371,28 +371,7 @@ await Promise.all(removeTasks);
             game.gameId
         );
 
-    const detailResponse =
-        await axios.get(detailUrl);
-
-    const matchData = {
-
-        gameId:
-            game.gameId,
-
-        competitionId:
-            game.competitionId,
-
-        league:
-            game.league,
-
-        home:
-            game.home,
-
-        away:
-            game.away,
-
-        // ...
-    };
+    
             
 
 const detailResponse = await axios.get(detailUrl);
