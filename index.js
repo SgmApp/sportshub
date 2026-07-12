@@ -453,6 +453,14 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
 });
 
+const playerMap = {};
+
+(detail.members || []).forEach(function(player){
+
+    playerMap[player.id] = player.name;
+
+});
+
 matchData.goalEvents = [];
 
 (detail.game && detail.game.events
