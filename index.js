@@ -451,10 +451,13 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
 const playerMap = {};
 
-(detail.members || []).forEach(function(player){
+const members =
+    detail.game && detail.game.members
+        ? detail.game.members
+        : detail.members || [];
 
+members.forEach(function(player) {
     playerMap[player.id] = player.name;
-
 });
 
 matchData.goalEvents = [];
