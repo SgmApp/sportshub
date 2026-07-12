@@ -112,9 +112,14 @@ async function loadMatches() {
             formatDate(yesterday),
             formatDate(tomorrow)
         );
+    const gameApiUrl =
+    String(
+        parserSettings.game_api_url || ""
+    );
 
     addLog("Parser : " + apiParser);
     addLog("API : " + apiUrl);
+    addLog("Game API : " + gameApiUrl);
 
     if (!apiUrl) {
 
@@ -356,6 +361,13 @@ await Promise.all(removeTasks);
     " vs " +
     game.away
 );
+            const detailUrl =
+    gameApiUrl.replace(
+        "{gameId}",
+        game.gameId
+    );
+
+const detailResponse = await axios.get(detailUrl);
             const matchData = {
 
                 gameId:
