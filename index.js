@@ -491,8 +491,6 @@ matchData.goalEvents = [];
 
             gameTime: ev.gameTimeDisplay || "",
 
-            competitorId: ev.competitorId || 0,
-
             type: ev.eventType.name || "Goal"
 
         });
