@@ -424,6 +424,36 @@ const detailResponse = await axios.get(detailUrl);
 
             };
 
+            matchData.goalEvents = [];
+
+(detail.game?.events || []).forEach(function (ev) {
+
+    const type = (ev.type || "").toLowerCase();
+
+    if (
+        type === "goal" ||
+        type === "owngoal" ||
+        type === "penaltygoal"
+    ) {
+
+        matchData.goalEvents.push({
+
+            playerId: ev.playerId || 0,
+
+            playerName: ev.playerName || "",
+
+            competitorNum: ev.competitorNum || 0,
+
+            gameTime: ev.gameTime || "",
+
+            type: ev.type || "goal"
+
+        });
+
+    }
+
+});
+
             // Preserve existing streamUrl
 
             const oldSnap =
