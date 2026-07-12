@@ -377,7 +377,10 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
     const detailResponse = await axios.get(detailUrl);
 
-    detail = detailResponse.data;
+detail = detailResponse.data;
+
+//addLog(JSON.stringify(detail));
+    addLog(JSON.stringify(detail, null, 2));
 
 }
             
