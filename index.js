@@ -479,22 +479,23 @@ matchData.goalEvents = [];
 
     if(ev.eventType && ev.eventType.id === 1){
 
-        const goalEvents = [];
+        matchData.goalEvents.push({
 
-(game.events || []).forEach(ev => {
+            playerId: ev.playerId || 0,
 
-    if (ev.type !== "Goal") return;
+            playerName: playerMap[ev.playerId] || "",
 
-    goalEvents.push({
-        playerId: ev.playerId,
-        playerName: ev.playerName,
-        gameTime: ev.gameTime,
-        type: ev.type,
-        competitorId: ev.competitorId
-    });
+            competitorId: ev.competitorId || 0,
+
+            gameTime: ev.gameTimeDisplay || "",
+
+            type: ev.eventType.name || "Goal"
+
+        });
+
+    }
 
 });
-
             // Preserve existing streamUrl
 
             const oldSnap =
