@@ -187,6 +187,8 @@ const parserSettings =
 
 const currentApi =
     parserSettings.api_url;
+        const gameApiUrl =
+    parserSettings.game_api_url || "";
 
 const apiSnap =
     await db.ref("settings/last_api").once("value");
