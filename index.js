@@ -445,36 +445,33 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
             };
 
-            matchData.goalEvents = [];
+            const playerMap = {};
 
-const events =
-    (detail &&
-     detail.game &&
-     detail.game.events)
-        ? detail.game.events
-        : [];
+(detail.members || []).forEach(function(player){
 
-events.forEach(function (ev) {
+    playerMap[player.id] = player.name;
 
-    const type = (ev.type || "").toLowerCase();
+});
 
-    if (
-        type === "goal" ||
-        type === "owngoal" ||
-        type === "penaltygoal"
-    ) {
+matchData.goalEvents = [];
+
+(detail.game && detail.game.events
+    ? detail.game.events
+    : []).forEach(function(ev){
+
+    if(ev.eventType && ev.eventType.id === 1){
 
         matchData.goalEvents.push({
 
             playerId: ev.playerId || 0,
 
-            playerName: ev.playerName || "",
+            playerName: playerMap[ev.playerId] || "",
 
-            competitorNum: ev.competitorNum || 0,
+            competitorId: ev.competitorId || 0,
 
-            gameTime: ev.gameTime || "",
+            gameTime: ev.gameTimeDisplay || "",
 
-            type: ev.type || "goal"
+            type: ev.eventType.name || "Goal"
 
         });
 
