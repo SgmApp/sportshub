@@ -19,61 +19,79 @@ module.exports = function (data) {
         // ---------------- Status ----------------
 
         let status = g.statusText || "";
-        let shortStatus = g.shortStatusText || "";
-        let adapterStatus = "";
+let shortStatus = g.shortStatusText || "";
+let adapterStatus = "";
 
-        const s = status.toLowerCase();
-        const ss = shortStatus.toUpperCase();
+const s = status.toLowerCase();
+const ss = shortStatus.toUpperCase();
 
-        if (
-            s.includes("ended") ||
-            s.includes("finished")
-        ) {
+if (
+    s.includes("ended") ||
+    s.includes("finished")
+) {
 
-            adapterStatus = "FT";
+    adapterStatus = "FT";
 
-        } else if (
-            s.includes("penalties")
-        ) {
+} else if (
+    s.includes("after et") ||
+    s.includes("after extra time")
+) {
 
-            adapterStatus = "AP";
+    adapterStatus = "AET";
 
-        } else if (
-            s.includes("scheduled")
-        ) {
+} else if (
+    s.includes("extra time")
+) {
 
-            adapterStatus = "Scheduled";
+    adapterStatus = "ET";
 
-        } else if (
-            s.includes("postponed")
-        ) {
+} else if (
+    s.includes("penalties")
+) {
 
-            adapterStatus = "Postponed";
+    adapterStatus = "AP";
 
-        } else if (
-            s.includes("cancelled")
-        ) {
+} else if (
+    s.includes("scheduled")
+) {
 
-            adapterStatus = "Cancelled";
+    adapterStatus = "Scheduled";
 
-        } else if (
-            s.includes("abandoned")
-        ) {
+} else if (
+    s.includes("postponed")
+) {
 
-            adapterStatus = "Abandoned";
+    adapterStatus = "Postponed";
 
-        } else {
+} else if (
+    s.includes("cancelled")
+) {
 
-            adapterStatus =
-                ss.includes("'") ||
-                ss === "HT" ||
-                ss === "LIVE" ||
-                ss === "ET" ||
-                ss.includes("+")
-                ? shortStatus
-                : "LIVE";
+    adapterStatus = "Cancelled";
 
-        }
+} else if (
+    s.includes("abandoned")
+) {
+
+    adapterStatus = "Abandoned";
+
+} else if (
+    ss.includes("'") ||
+    ss.includes("+") ||
+    ss === "HT" ||
+    ss === "LIVE" ||
+    ss === "ET" ||
+    ss === "AET" ||
+    ss === "FT"
+) {
+
+    adapterStatus = shortStatus;
+
+} else {
+
+    adapterStatus = shortStatus || "LIVE";
+
+}
 
         // ---------------- Score ----------------
 
