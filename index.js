@@ -341,17 +341,19 @@ await Promise.all(removeTasks);
 
         // Process matches
 
-        for (const game of games) {
+for (const game of games) {
 
     const competitionId =
-        game.competitionId || 0;
+        Number(game.competitionId);
 
-    if (
-        allowedCompetitions.length > 0 &&
-        !allowedCompetitions.includes(
-            competitionId
-        )
-    ) {
+    if (!allowedCompetitions.includes(competitionId)) {
+
+        addLog(
+            "Skipping : " +
+            game.home +
+            " vs " +
+            game.away
+        );
 
         continue;
 
