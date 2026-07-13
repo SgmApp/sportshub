@@ -236,30 +236,29 @@ if (apiChanged) {
 
         for (const c of competitions) {
 
-    const compRef = db.ref("competitions")
-        .child(String(c.id));
+            const compRef = db.ref("competitions")
+    .child(String(c.id));
 
-    const oldSnap = await compRef.once("value");
+const selectionSnap = await db
+    .ref("competition_selection")
+    .child(String(c.id))
+    .once("value");
 
-    let selected = false;
+const selected = selectionSnap.exists()
+    ? selectionSnap.val()
+    : false;
 
-    if (
-        oldSnap.exists() &&
-        oldSnap.child("selected").exists()
-    ) {
-        selected = oldSnap.child("selected").val();
-    }
+await compRef.set({
 
-    await compRef.set({
+    id: c.id,
 
-        id: c.id,
+    name: c.name,
 
-        name: c.name,
+    selected: selected
 
-        selected: selected
+});
 
-    });
-
+    
         }
 
         addLog("Competition list updated.");
