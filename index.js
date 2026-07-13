@@ -303,8 +303,8 @@ const currentCompetitionIds = competitions.map(function (c) {
     return Number(c.id);
 
 });
-
-const oldMatchesSnap =
+        
+        const oldMatchesSnap =
     await matchesRef.once("value");
 
 const removeTasks = [];
@@ -316,27 +316,28 @@ oldMatchesSnap.forEach(function (child) {
     if (!match)
         return;
 
-    const competitionId = Number(match.competitionId);
+    const competitionId =
+        Number(match.competitionId);
 
-if (
-    !currentCompetitionIds.includes(competitionId) ||
-    !allowedCompetitions.includes(competitionId)
-) {
+    // Admin unselected competition
+    if (!allowedCompetitions.includes(competitionId)) {
 
-    addLog(
-        "Removing match : " +
-        match.gameId
-    );
+        addLog(
+            "Removing match : " +
+            match.gameId
+        );
 
-    removeTasks.push(
-        child.ref.remove()
-    );
+        removeTasks.push(
+            child.ref.remove()
+        );
 
-}
+    }
 
 });
 
 await Promise.all(removeTasks);
+
+
 
 
 
