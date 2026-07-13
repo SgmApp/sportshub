@@ -316,22 +316,23 @@ oldMatchesSnap.forEach(function (child) {
     if (!match)
         return;
 
-    if (
-        !currentCompetitionIds.includes(
-            Number(match.competitionId)
-        )
-    ) {
+    const competitionId = Number(match.competitionId);
 
-        addLog(
-    "Removing old competition match : " +
-    match.gameId
-);
+if (
+    !currentCompetitionIds.includes(competitionId) ||
+    !allowedCompetitions.includes(competitionId)
+) {
 
-        removeTasks.push(
-            child.ref.remove()
-        );
+    addLog(
+        "Removing match : " +
+        match.gameId
+    );
 
-    }
+    removeTasks.push(
+        child.ref.remove()
+    );
+
+}
 
 });
 
@@ -542,11 +543,6 @@ const allMatches = await matchesRef.once("value");
 
 const removeMatchTasks = [];
 
-// ഇന്നലെ 00:00 മുതൽ മാത്രം സൂക്ഷിക്കുക
-const keepFrom = new Date();
-keepFrom.setHours(0, 0, 0, 0);
-keepFrom.setDate(keepFrom.getDate() - 1);
-
 allMatches.forEach(function (child) {
 
     const match = child.val();
@@ -554,11 +550,23 @@ allMatches.forEach(function (child) {
     if (!match || !match.matchTimeMillis)
         return;
 
-    if (match.matchTimeMillis < keepFrom.getTime()) {
+    // Match date
+    const matchDate = new Date(match.matchTimeMillis);
 
-        addLog("Removing expired match : " + match.gameId);
+    // Match കഴിഞ്ഞ് അടുത്ത ദിവസത്തിന്റെ അവസാനം വരെ സൂക്ഷിക്കുക
+    const deleteAfter = new Date(matchDate);
+    deleteAfter.setDate(deleteAfter.getDate() + 1);
+    deleteAfter.setHours(23, 59, 59, 999);
 
-        removeMatchTasks.push(child.ref.remove());
+    if (Date.now() > deleteAfter.getTime()) {
+
+        addLog(
+            "Removing expired match : " + match.gameId
+        );
+
+        removeMatchTasks.push(
+            child.ref.remove()
+        );
 
     }
 
