@@ -268,7 +268,8 @@ const selectedSports = selectedSportsSnap.val() || {};
 
 for (const c of competitions) {
 
-    if (!selectedSports[String(c.sportId)]) {
+    // Sport selected അല്ലെങ്കിൽ skip
+    if (selectedSports[String(c.sportId)] !== true) {
         continue;
     }
 
