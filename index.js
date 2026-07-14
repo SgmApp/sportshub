@@ -256,25 +256,25 @@ if (apiChanged) {
 
         addLog("Competitions : " + competitions.length);
 
-       addLog("Games : " + games.length);
+       addLog("Competitions : " + competitions.length);
+addLog("Games : " + games.length);
 
+// Read selected sports
 const selectedSportsSnap = await db
     .ref("settings/selected_sports")
     .once("value");
 
 const selectedSports = selectedSportsSnap.val() || {};
 
-// Save competitions
+// Clear old competitions
+await db.ref("competitions").remove();
 
+// Save competitions
 for (const c of competitions) {
 
-    // Sport selected അല്ലെങ്കിൽ skip
     if (selectedSports[String(c.sportId)] !== true) {
         continue;
     }
-
-    const compRef = db.ref("competitions")
-        .child(String(c.id));
 
     const selectionSnap = await db
         .ref("competition_selection")
@@ -285,12 +285,14 @@ for (const c of competitions) {
         ? selectionSnap.val()
         : false;
 
-    await compRef.set({
-        id: c.id,
-        sportId: c.sportId,
-        name: c.name,
-        selected: selected
-    });
+    await db.ref("competitions")
+        .child(String(c.id))
+        .set({
+            id: c.id,
+            sportId: c.sportId,
+            name: c.name,
+            selected: selected
+        });
 }
         
 
