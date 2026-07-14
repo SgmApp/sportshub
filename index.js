@@ -256,35 +256,42 @@ if (apiChanged) {
 
         addLog("Competitions : " + competitions.length);
 
-        addLog("Games : " + games.length);
+       addLog("Games : " + games.length);
 
-        // Save competitions
-
-        for (const c of competitions) {
-
-            const compRef = db.ref("competitions")
-    .child(String(c.id));
-
-const selectionSnap = await db
-    .ref("competition_selection")
-    .child(String(c.id))
+const selectedSportsSnap = await db
+    .ref("settings/selected_sports")
     .once("value");
 
-const selected = selectionSnap.exists()
-    ? selectionSnap.val()
-    : false;
+const selectedSports = selectedSportsSnap.val() || {};
 
-await compRef.set({
+// Save competitions
 
-    id: c.id,
-    sportId: c.sportId,
-    name: c.name,
-    selected: selected
+for (const c of competitions) {
 
-});
+    if (!selectedSports[String(c.sportId)]) {
+        continue;
+    }
 
-    
-        }
+    const compRef = db.ref("competitions")
+        .child(String(c.id));
+
+    const selectionSnap = await db
+        .ref("competition_selection")
+        .child(String(c.id))
+        .once("value");
+
+    const selected = selectionSnap.exists()
+        ? selectionSnap.val()
+        : false;
+
+    await compRef.set({
+        id: c.id,
+        sportId: c.sportId,
+        name: c.name,
+        selected: selected
+    });
+}
+        
 
         addLog("Competition list updated.");
 
