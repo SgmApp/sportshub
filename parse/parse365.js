@@ -140,6 +140,8 @@ const games = [];
 
         gameId: g.id,
 
+        sportId: g.sportId || 1,
+
         competitionId: g.competitionId,
 
         league: g.competitionDisplayName || "",
