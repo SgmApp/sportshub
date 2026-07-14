@@ -178,7 +178,33 @@ async function syncMatches() {
    addLog("===== Sports Hub Sync Started =====");
         await updateWorkflow("running");
 
-    const data = await loadMatches();
+  // const data = await loadMatches();
+
+  //const settings = await getSettings();
+        const data = await loadMatches();
+
+// Save Sports
+if (data.sports && data.sports.length > 0) {
+
+    const sportsRef = db.ref("sports");
+
+    for (const s of data.sports) {
+
+        await sportsRef.child(String(s.id).padStart(2, "0")).set({
+            id: s.id,
+            name: s.name,
+            nameForURL: s.nameForURL || "",
+            drawSupport: !!s.drawSupport,
+            totalGames: s.totalGames || 0,
+            liveGames: s.liveGames || 0,
+            imageVersion: s.imageVersion || 1
+        });
+
+    }
+
+    addLog("Sports updated : " + data.sports.length);
+
+}
 
 const settings = await getSettings();
 
