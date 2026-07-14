@@ -31,12 +31,10 @@ const games = [];
 (data.competitions || []).forEach(function (c) {
 
     competitions.push({
-
-        id: c.id,
-
-        name: c.name
-
-    });
+    id: c.id,
+    sportId: c.sportId || 1,
+    name: c.name
+});
 
 });
 
