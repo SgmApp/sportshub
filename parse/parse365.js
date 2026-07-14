@@ -10,20 +10,25 @@ const games = [];
     sports.push({
 
         id: s.id,
-
         name: s.name,
-
         nameForURL: s.nameForURL || "",
-
         drawSupport: !!s.drawSupport,
-
         totalGames: s.totalGames || 0,
-
         liveGames: s.liveGames || 0,
-
         imageVersion: s.imageVersion || 1
 
     });
+
+});
+
+// Competition -> Sport Mapping
+const competitionSports = {};
+
+(data.games || []).forEach(function (g) {
+
+    if (!competitionSports[g.competitionId]) {
+        competitionSports[g.competitionId] = g.sportId || 1;
+    }
 
 });
 
@@ -31,10 +36,12 @@ const games = [];
 (data.competitions || []).forEach(function (c) {
 
     competitions.push({
-    id: c.id,
-    sportId: c.sportId || 1,
-    name: c.name
-});
+
+        id: c.id,
+        sportId: competitionSports[c.id] || 1,
+        name: c.name
+
+    });
 
 });
 
@@ -137,25 +144,15 @@ const games = [];
     games.push({
 
         gameId: g.id,
-
         sportId: g.sportId || 1,
-
         competitionId: g.competitionId,
-
         league: g.competitionDisplayName || "",
-
         home: g.homeCompetitor?.name || "",
-
         away: g.awayCompetitor?.name || "",
-
         score: score,
-
         status: adapterStatus,
-
         shortStatus: shortStatus,
-
         streamUrl: g.streamUrl || "",
-
         stadium: g.venue?.name || "",
 
         date: start
@@ -188,9 +185,7 @@ const games = [];
 return {
 
     sports,
-
     competitions,
-
     games
 
 };
