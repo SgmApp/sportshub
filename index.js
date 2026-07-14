@@ -431,6 +431,8 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
 
                 gameId:
                     game.gameId,
+                sportId: 
+                    game.sportId,  
 
                 competitionId:
                     game.competitionId,
