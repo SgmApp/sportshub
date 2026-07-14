@@ -277,9 +277,8 @@ const selected = selectionSnap.exists()
 await compRef.set({
 
     id: c.id,
-
+    sportId: c.sportId,
     name: c.name,
-
     selected: selected
 
 });
