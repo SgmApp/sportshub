@@ -521,23 +521,56 @@ matchData.goalEvents = [];
 
         
 
+        matchData.goalEvents = [];
+
+// Football
+if (game.sportId == 1) {
+
+    (detail.game && detail.game.events
+        ? detail.game.events
+        : []).forEach(function(ev){
+
+        if(ev.eventType && ev.eventType.id === 1){
+
+            matchData.goalEvents.push({
+
+                playerId: ev.playerId || 0,
+                playerName: playerMap[ev.playerId] || "",
+                competitorId: ev.competitorId || 0,
+                gameTime: ev.gameTimeDisplay || "",
+                type: ev.eventType.name || "Goal"
+
+            });
+
+        }
+
+    });
+
+}
+// Tennis
+else if (game.sportId == 3) {
+
+    (detail.game && detail.game.stages
+        ? detail.game.stages
+        : []).forEach(function(stage){
+
         matchData.goalEvents.push({
 
-            playerId: ev.playerId || 0,
-
-            playerName: playerMap[ev.playerId] || "",
-
-            competitorId: ev.competitorId || 0,
-
-            gameTime: ev.gameTimeDisplay || "",
-
-            type: ev.eventType.name || "Goal"
+            playerId: 0,
+            playerName: stage.shortName || stage.name,
+            competitorId: 0,
+            gameTime: "",
+            type:
+                (stage.homeCompetitorScore ?? "-") +
+                " - " +
+                (stage.awayCompetitorScore ?? "-")
 
         });
 
-    }
+    });
 
-});
+}
+
             // Preserve existing streamUrl
 
             const oldSnap =
