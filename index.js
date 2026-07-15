@@ -543,19 +543,52 @@ else if (game.sportId == 3) {
         : []).forEach(function(stage){
 
         matchData.goalEvents.push({
+
             playerId: 0,
             playerName: stage.shortName || stage.name,
             competitorId: 0,
-            gameTime: "",
+            gameTime: stage.time || "",
+
             type:
-                (stage.homeCompetitorScore != null ? stage.homeCompetitorScore : "-") +
+                (stage.homeCompetitorScore != null
+                    ? stage.homeCompetitorScore
+                    : "-") +
                 " - " +
-                (stage.awayCompetitorScore != null ? stage.awayCompetitorScore : "-")
+                (stage.awayCompetitorScore != null
+                    ? stage.awayCompetitorScore
+                    : "-")
+
         });
 
     });
 
 }
+    // Other Sports
+else {
+
+    if (detail.game && detail.game.stages) {
+
+        detail.game.stages.forEach(function(stage){
+
+            matchData.goalEvents.push({
+
+                playerId: 0,
+                playerName: stage.shortName || stage.name || "",
+                competitorId: 0,
+                gameTime: stage.time || "",
+                type:
+                    (stage.homeCompetitorScore != null ? stage.homeCompetitorScore : "-")
+                    + " - " +
+                    (stage.awayCompetitorScore != null ? stage.awayCompetitorScore : "-")
+
+            });
+
+        });
+
+    }
+
+}
+    
 
 
 
