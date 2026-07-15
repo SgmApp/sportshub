@@ -502,9 +502,9 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
             const playerMap = {};
 
 const members =
-    detail.game && detail.game.members
+    (detail.game && detail.game.members)
         ? detail.game.members
-        : detail.members || [];
+        : (detail.members || []);
 
 members.forEach(function(player){
     playerMap[player.id] = player.name;
