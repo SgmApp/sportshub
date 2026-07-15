@@ -143,42 +143,44 @@ const competitionSports = {};
 
     games.push({
 
-        gameId: g.id,
-        sportId: g.sportId || 1,
-        competitionId: g.competitionId,
-        league: g.competitionDisplayName || "",
-        home: g.homeCompetitor?.name || "",
-        away: g.awayCompetitor?.name || "",
-        score: score,
-        status: adapterStatus,
-        shortStatus: shortStatus,
-        streamUrl: g.streamUrl || "",
-        stadium: g.venue?.name || "",
+    gameId: g.id,
+    sportId: g.sportId || 1,
+    competitionId: g.competitionId,
 
-        date: start
-            .toLocaleDateString("en-GB")
-            .replace(/\//g, "-"),
+    homeCompetitorId: g.homeCompetitor?.id || 0,
+    awayCompetitorId: g.awayCompetitor?.id || 0,
 
-        time: start.toLocaleTimeString(
-            "en-US",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true
-            }
-        ),
+    league: g.competitionDisplayName || "",
+    home: g.homeCompetitor?.name || "",
+    away: g.awayCompetitor?.name || "",
 
-        matchTimeMillis: start.getTime(),
+    score: score,
+    status: adapterStatus,
+    shortStatus: shortStatus,
+    streamUrl: g.streamUrl || "",
+    stadium: g.venue?.name || "",
 
-        homeLogo:
-            "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
-            (g.homeCompetitor?.id || ""),
+    date: start
+        .toLocaleDateString("en-GB")
+        .replace(/\//g, "-"),
 
-        awayLogo:
-            "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
-            (g.awayCompetitor?.id || "")
+    time: start.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+    }),
 
-    });
+    matchTimeMillis: start.getTime(),
+
+    homeLogo:
+        "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+        (g.homeCompetitor?.id || ""),
+
+    awayLogo:
+        "https://imagecache.365scores.com/image/upload/f_auto,w_120,h_120,c_limit,q_auto:eco/v2/competitors/" +
+        (g.awayCompetitor?.id || "")
+
+});
 
 });
 
