@@ -497,31 +497,20 @@ if (gameApiUrl && gameApiUrl.trim() !== "") {
             : 0
 
 };
+    
 
-            
-
-const playerMap = {};
+            const playerMap = {};
 
 const members =
     detail.game && detail.game.members
         ? detail.game.members
         : detail.members || [];
 
-members.forEach(function(player) {
+members.forEach(function(player){
     playerMap[player.id] = player.name;
 });
 
 matchData.goalEvents = [];
-
-(detail.game && detail.game.events
-    ? detail.game.events
-    : []).forEach(function(ev){
-
-    if(ev.eventType && ev.eventType.id === 1){
-
-        
-
-        matchData.goalEvents = [];
 
 // Football
 if (game.sportId == 1) {
@@ -530,16 +519,14 @@ if (game.sportId == 1) {
         ? detail.game.events
         : []).forEach(function(ev){
 
-        if(ev.eventType && ev.eventType.id === 1){
+        if (ev.eventType && ev.eventType.id === 1) {
 
             matchData.goalEvents.push({
-
                 playerId: ev.playerId || 0,
                 playerName: playerMap[ev.playerId] || "",
                 competitorId: ev.competitorId || 0,
                 gameTime: ev.gameTimeDisplay || "",
                 type: ev.eventType.name || "Goal"
-
             });
 
         }
@@ -547,6 +534,7 @@ if (game.sportId == 1) {
     });
 
 }
+
 // Tennis
 else if (game.sportId == 3) {
 
@@ -555,21 +543,21 @@ else if (game.sportId == 3) {
         : []).forEach(function(stage){
 
         matchData.goalEvents.push({
-
             playerId: 0,
             playerName: stage.shortName || stage.name,
             competitorId: 0,
             gameTime: "",
             type:
-                (stage.homeCompetitorScore ?? "-") +
+                (stage.homeCompetitorScore != null ? stage.homeCompetitorScore : "-") +
                 " - " +
-                (stage.awayCompetitorScore ?? "-")
-
+                (stage.awayCompetitorScore != null ? stage.awayCompetitorScore : "-")
         });
 
     });
 
 }
+
+
 
             // Preserve existing streamUrl
 
